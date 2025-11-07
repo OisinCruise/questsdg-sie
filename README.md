@@ -83,7 +83,7 @@ This project extends the existing Quest:SDG experience by creating 17 unique int
 - **Meta Quest SDK Integration**: Leveraging Godot's OpenXR implementation for Quest deployment
 
 ### Interaction Systems
-- **Hand Tracking**: Using Quest SDGs logic for hand tracking for natural interactions, as well as pinch and grasp gestures
+- **Hand Tracking**: Utilise Quest:SDGs logic for hand tracking for natural interactions, as well as pinch and grasp gestures
 - **XR Toolkit**: For controller-based interactions as fallback if simpler solution is preferred.
 - **Spatial Audio**: 3D positional audio for immersive feedback
 
@@ -112,3 +112,18 @@ This project extends the existing Quest:SDG experience by creating 17 unique int
 - Visual effects (particle systems for success/failure, e.g Confetti Explosions)
 - Standard Haptic feedback triggers through controller vibration (if utilised)
 - Spatial audio cues
+
+
+## How I plan to utilise the already established Quest:SDG Logic
+
+- Build upon the existing OpenXR/Hand Tracking framework and just hook into existing scene transitions
+
+- Extend the Scene Management System, creating 17 new subscenes for Sustainabot interactions that follow the same node composition patterns
+
+- Use Godot's AnimationPlayer node for Sustainabot character animations and state transitions
+
+- Reuse spatial audio infrastructure for Sustainabot's gibberish dialogue using the existing audio pipeline
+
+- Implement State Machines for behavior states (idle, commending, berating) using the same patterns likely used in current interactions
+
+- Maintain Modular Structure, so that each Sustainabot scene should be self-contained and reusable, consistent with Quest:SDG's architecture
