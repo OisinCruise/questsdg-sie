@@ -52,3 +52,63 @@ An immersive experience where you can learn about the UN SDG's and TU Dublin pro
 - Paul Duffy
 - Lucia Walsh
 - Kenneth Boyle
+
+---
+
+# Quest:SDG Extended - Sustainabot Interactive Experiences
+
+**Team Members:**
+- Oisin Cruise: C22517166
+
+**Repository:** [GitHub Forked Repo](https://github.com/OisinCruise/questsdg-sie)
+
+## Project Idea
+
+This project extends the existing Quest:SDG experience by creating 17 unique interactive mini-scenes, one for each UN Sustainable Development Goal. When users interact with any of the 17 SDG blocks in the current Quest:SDG environment, they will be surrounded by an immersive scene featuring 'Sustainabot', a comical "Sustainability Warden" character.
+
+### Core Mechanics
+- **Block Interaction**: Users trigger scenes by specific hand gesture or button to activate the mini-scene of each SDG block
+- **Sustainabot Character**: A 3D animated character who communicates through gibberish audio recordings and comical reactions
+- **Task-Based Learning**: Each scene presents a simple sustainability-related task (e.g., sorting waste, conserving water)
+- **Positive/Negative Feedback**: Sustainabot commends correct actions and humorously berates incorrect ones (Example: user throws paper into trash correctly, user throws paper at Sustainabot/on the floor).
+
+
+## Technology and Interaction Libraries
+
+### Game Engine
+- **Godot**: Open-source game engine with native OpenXR support for Meta Quest
+
+### XR Development
+- **OpenXR**: Industry-standard API for VR/AR development
+- **Meta Quest SDK Integration**: Leveraging Godot's OpenXR implementation for Quest deployment
+
+### Interaction Systems
+- **Hand Tracking**: Using Quest SDGs logic for hand tracking for natural interactions, as well as pinch and grasp gestures
+- **XR Toolkit**: For controller-based interactions as fallback if simpler solution is preferred.
+- **Spatial Audio**: 3D positional audio for immersive feedback
+
+### Additional Tools
+- **Blender**: 3D modeling for Sustainabot character and scene assets (Possible that other asset libraries will be utilised)
+- **Audacity**: Creating or sourcing gibberish audio recordings for Sustainabot dialogue
+- **Git/GitHub**: Version control and project management
+
+## Technical Implementation
+
+### Scene Management
+- Use Godot's scene/subscene system to manage 17 independent mini-scenes
+- Implement scene transitions triggered by specific block interactions
+
+### Character System
+- Animate Sustainabot using Godot's AnimationPlayer
+- Create state machine for character responses (idle, instructing, commending, berating)
+- Implement audio playback system for gibberish dialogue
+
+### Interaction Detection
+- Raycasting for hand/controller pointing
+- Collision detection for object manipulation
+- Signal-based event system for user actions
+
+### Feedback Systems
+- Visual effects (particle systems for success/failure, e.g Confetti Explosions)
+- Standard Haptic feedback triggers through controller vibration (if utilised)
+- Spatial audio cues
