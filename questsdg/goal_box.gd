@@ -51,7 +51,7 @@ func make_invisible():
 	ani_box.position = position
 	ani_box.rotation = rotation
 	ani_box.visible = true
-	ani_box.get_node
+	# ani_box.get_node
 	ani_box.bounce_in()
 	Talo.events.track("Goal " + str(goal) + " thumbs up")
 	Talo.events.flush()

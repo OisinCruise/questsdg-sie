@@ -1,4 +1,4 @@
-[gd_scene load_steps=8900 format=4 uid="uid://bm3rnwx5wv8tx"]
+[gd_scene load_steps=8904 format=4 uid="uid://bm3rnwx5wv8tx"]
 
 [ext_resource type="Script" uid="uid://k3b81g2egbnl" path="res://questsdg/cubes_scene_earlier.gd" id="1_d7fp4"]
 [ext_resource type="Script" uid="uid://djvs7cwaexbhh" path="res://questsdg/start_xr.gd" id="1_e2pu3"]
@@ -99,6 +99,9 @@
 [ext_resource type="Script" uid="uid://bwfcgojiieai2" path="res://questsdg/reset_wheel.gd" id="87_axglg"]
 [ext_resource type="AudioStream" uid="uid://bq1lx7ft7u75y" path="res://sounds/spaceship-ambience-with-effects-21420.mp3" id="89_8su2q"]
 [ext_resource type="Material" uid="uid://depf86lb6a4qm" path="res://questsdg/colored_glass.tres" id="96_axglg"]
+[ext_resource type="PackedScene" uid="uid://bbyhi45exl1kd" path="res://godot_plush/godot_plushie_animated.glb" id="96_ty5nw"]
+[ext_resource type="Script" uid="uid://cmuq6af1qq8pk" path="res://questsdg/godot_dude.gd" id="97_p4u8u"]
+[ext_resource type="PackedScene" uid="uid://0f8utn8bitf4" path="res://questsdg/3_dlabel.tscn" id="98_w1b63"]
 [ext_resource type="Script" uid="uid://cmw6n17mebkcx" path="res://behaviors/boid.gd" id="99_0s3vr"]
 [ext_resource type="Script" uid="uid://s5pb8njisohn" path="res://behaviors/avoidance.gd" id="100_8su2q"]
 [ext_resource type="Material" uid="uid://dohx2u81lglvd" path="res://behaviors/jet_material.tres" id="102_wnpci"]
@@ -61659,6 +61662,9 @@ emission_energy_multiplier = 1.2
 [sub_resource type="BoxShape3D" id="BoxShape3D_p4u8u"]
 size = Vector3(100, 0.01, 100)
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_p4u8u"]
+radius = 0.11541933
+
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rf3s6"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
 ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -62093,9 +62099,6 @@ stream = ExtResource("22_6h1ut")
 volume_db = -49.931
 autoplay = true
 
-[node name="color_wheel" parent="tu dub" instance=ExtResource("44_rf3s6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00605768, 0, 0.61833)
-
 [node name="space" type="StaticBody3D" parent="tu dub"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.3, 0)
 
@@ -62108,6 +62111,85 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.01724, 0)
 [node name="CollisionShape3D" type="CollisionShape3D" parent="tu dub/space/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 1.254, 0.556)
 shape = SubResource("BoxShape3D_p4u8u")
+
+[node name="color_wheel" parent="tu dub" instance=ExtResource("44_rf3s6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15001851, 0, 0.61833)
+
+[node name="godot_plushy" type="RigidBody3D" parent="tu dub"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1653974, -0.1020844, 0.632358)
+mass = 10.0
+linear_damp = 5.0
+angular_damp = 5.0
+
+[node name="godot_plushie_animated" parent="tu dub/godot_plushy" instance=ExtResource("96_ty5nw")]
+transform = Transform3D(0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0)
+
+[node name="Skeleton3D" parent="tu dub/godot_plushy/godot_plushie_animated/Armature" index="0"]
+bones/0/position = Vector3(-4.7441544e-09, 0.15483436, 0)
+bones/0/scale = Vector3(1, 1.0917958, 1)
+bones/1/position = Vector3(-0.5535997, -0.64620894, -1.4332383e-07)
+bones/1/rotation = Quaternion(-0.7043076, 0.06285381, 0.7043079, -0.062854424)
+bones/2/rotation = Quaternion(1.5310142e-08, 5.002556e-07, -0.14667474, 0.9891848)
+bones/3/rotation = Quaternion(2.2101689e-07, -8.220096e-07, 0.5683017, 0.8228203)
+bones/4/rotation = Quaternion(0.6404197, -0.29977113, -0.64041954, -0.29977113)
+bones/5/rotation = Quaternion(0.6221701, -2.1585109e-07, 2.3733334e-07, 0.7828822)
+bones/6/rotation = Quaternion(0.03899031, 7.189151e-08, -1.8611944e-07, 0.9992396)
+bones/7/rotation = Quaternion(0.2455966, -1.3855903e-08, 1.8101172e-09, 0.96937215)
+bones/8/position = Vector3(0.5535997, -0.64620894, -1.420082e-07)
+bones/8/rotation = Quaternion(0.7043076, 0.06285381, 0.7043079, 0.062854424)
+bones/9/rotation = Quaternion(1.5310142e-08, -5.002556e-07, 0.14667474, 0.9891848)
+bones/10/rotation = Quaternion(2.2101689e-07, 8.220096e-07, -0.5683017, 0.8228203)
+bones/11/rotation = Quaternion(0.6404197, 0.29977113, 0.64041954, -0.29977113)
+bones/12/rotation = Quaternion(0.6221701, 2.1585112e-07, -2.3733334e-07, 0.7828822)
+bones/13/rotation = Quaternion(0.038990326, -7.18915e-08, 1.8611944e-07, 0.9992396)
+bones/14/rotation = Quaternion(0.2455966, 1.3855907e-08, -1.8101127e-09, 0.96937215)
+
+[node name="AnimationPlayer" parent="tu dub/godot_plushy/godot_plushie_animated" index="1"]
+speed_scale = 0.05
+script = ExtResource("97_p4u8u")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="tu dub/godot_plushy"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.10439405, 0)
+shape = SubResource("SphereShape3D_p4u8u")
+
+[node name="Credits2" parent="tu dub" instance=ExtResource("98_w1b63")]
+transform = Transform3D(0.6468694, 0, -0.7626008, 0, 1, 0, 0.7626008, 0, 0.6468694, 0.9158054, 0.2595799, -1.1520331)
+text = "Created with:
+Godot Engine
+Blender
+FOSS
+
+Download & contribute:
+https://github.com/skooter500/questsdg
+https://skooter500.itch.io/quest-sdg"
+font_size = 64
+horizontal_alignment = 0
+
+[node name="Credits" parent="tu dub" instance=ExtResource("98_w1b63")]
+transform = Transform3D(0.5834704, 0, 0.8121344, 0, 1, 0, -0.8121344, 0, 0.5834704, -1.5190226, 0.10329819, -0.8006011)
+text = "Credits:
+
+Faculty of Digital and Data:
+Dr Bryan Duggan
+Darren Fitzpatrick
+Mateo Alves
+Garrett Recker
+
+TU Dublin Sustainability Education:
+Dr Brian Gormley
+Olivia Freeman
+Paul Duffy
+Lucia Walsh
+Kenneth Boyle
+
+TU Dublin Conservatoire:
+Odhrán O Casaide
+Mark Redmond
+Ciaran Hanrahan
+Thomas Doorley
+Neil Duignam"
+font_size = 64
+horizontal_alignment = 0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_73ssi")
@@ -62184,11 +62266,7 @@ shape = SubResource("SphereShape3D_pvxhv")
 hand_tracker = &"/user/hand_tracker/right"
 
 [node name="RightHandHumanoidMesh" parent="XROrigin3D/right/RightHandHumanoid2/RightHandHumanoid/Skeleton3D" index="1"]
-<<<<<<< HEAD
-surface_material_override/0 = ExtResource("82_nte7u")
-=======
 surface_material_override/0 = ExtResource("96_axglg")
->>>>>>> krk
 
 [node name="HandPoseDetector" parent="XROrigin3D/right" instance=ExtResource("6_mfkbt")]
 hand_tracker_name = "/user/hand_tracker/right"
@@ -62199,29 +62277,8 @@ hand_pose_set = ExtResource("7_077gh")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="XROrigin3D/right/collider"]
 shape = SubResource("CapsuleShape3D_dbnba")
 
-<<<<<<< HEAD
-[node name="StaticBody3D" type="StaticBody3D" parent="."]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
-shape = SubResource("WorldBoundaryShape3D_rf3s6")
-
-[node name="StaticBody3D2" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D2"]
-shape = SubResource("BoxShape3D_dbnba")
-
-[node name="playlist_looper" type="Node3D" parent="."]
-script = ExtResource("83_8qmgi")
-sounds = Array[AudioStream]([ExtResource("20_dixy6"), ExtResource("85_kwntv"), ExtResource("86_hscs4")])
-
-[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="playlist_looper"]
-
-[connection signal="pose_ended" from="XROrigin3D/left/HandPoseDetector" to="XROrigin3D/left" method="_on_hand_pose_detector_pose_ended"]
-[connection signal="pose_started" from="XROrigin3D/left/HandPoseDetector" to="XROrigin3D/left" method="_on_hand_pose_detector_pose_started"]
-=======
 [connection signal="bounce" from="tu dub/ani_goals/goal_box_animated15" to="tu dub/ani_goals/goal_box_animated15/climate_action" method="_on_goal_box_animated_13_bounce"]
->>>>>>> krk
+[connection signal="animation_finished" from="tu dub/godot_plushy/godot_plushie_animated/AnimationPlayer" to="tu dub/godot_plushy/godot_plushie_animated/AnimationPlayer" method="_on_animation_finished"]
 [connection signal="area_entered" from="XROrigin3D/left/left_hand" to="XROrigin3D/left" method="_on_right_hand_area_entered"]
 [connection signal="area_entered" from="XROrigin3D/right/right_hand" to="XROrigin3D/right" method="_on_right_hand_area_entered"]
 [connection signal="area_exited" from="XROrigin3D/right/right_hand" to="XROrigin3D/right" method="_on_right_hand_area_exited"]
@@ -62252,5 +62309,8 @@ sounds = Array[AudioStream]([ExtResource("20_dixy6"), ExtResource("85_kwntv"), E
 [editable path="tu dub/maps/Grangegorman"]
 [editable path="tu dub/maps/Grangegorman/labels/3dlabel3"]
 [editable path="tu dub/maps/Bolton"]
+[editable path="tu dub/godot_plushy/godot_plushie_animated"]
+[editable path="tu dub/Credits2"]
+[editable path="tu dub/Credits"]
 [editable path="XROrigin3D/left/LeftHandHumanoid2"]
 [editable path="XROrigin3D/right/RightHandHumanoid2"]
