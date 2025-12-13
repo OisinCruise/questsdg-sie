@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://cjsnqon4ps6ac"]
+
+[ext_resource type="Script" path="res://questsdg/sustainabot.gd" id="1_sustainabot"]
+[ext_resource type="PackedScene" uid="uid://csu3emwa5og1j" path="res://mini_scenes/shared/sustainabot/Sustainabot.glb" id="2_model"]
+
+[node name="Sustainabot" type="Node3D"]
+script = ExtResource("1_sustainabot")
+idle_animation = "Idle"
+instructing_animation = "Talk"
+commending_animation = "Wave"
+berating_animation = "Angry"
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+max_distance = 5.0

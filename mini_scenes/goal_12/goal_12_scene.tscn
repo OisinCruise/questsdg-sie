@@ -1,0 +1,90 @@
+[gd_scene load_steps=7 format=3 uid="uid://dg12scene"]
+
+[ext_resource type="Script" path="res://mini_scenes/goal_12/goal_12_scene.gd" id="1_scene"]
+[ext_resource type="PackedScene" uid="uid://dsustainabotscene" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="2_sustainabot"]
+[ext_resource type="Script" path="res://questsdg/target_zone.gd" id="3_targetzone"]
+[ext_resource type="Script" path="res://questsdg/feedback_manager.gd" id="4_feedback"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bin"]
+size = Vector3(0.4, 0.4, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bin"]
+size = Vector3(0.4, 0.4, 0.4)
+
+[node name="Goal12Scene" type="Node3D"]
+script = ExtResource("1_scene")
+goal_number = 12
+spawn_count = 10
+spawn_interval = 3.0
+
+[node name="Sustainabot" parent="." instance=ExtResource("2_sustainabot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="Bins" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -1)
+
+[node name="RecyclingBin" type="Area3D" parent="Bins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 0)
+script = ExtResource("3_targetzone")
+accepted_tags = Array[String](["recyclable"])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bins/RecyclingBin"]
+shape = SubResource("BoxShape3D_bin")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Bins/RecyclingBin"]
+mesh = SubResource("BoxMesh_bin")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Bins/RecyclingBin"]
+max_distance = 3.0
+
+[node name="Label3D" type="Label3D" parent="Bins/RecyclingBin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+text = "RECYCLING"
+font_size = 32
+
+[node name="CompostBin" type="Area3D" parent="Bins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("3_targetzone")
+accepted_tags = Array[String](["compostable"])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bins/CompostBin"]
+shape = SubResource("BoxShape3D_bin")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Bins/CompostBin"]
+mesh = SubResource("BoxMesh_bin")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Bins/CompostBin"]
+max_distance = 3.0
+
+[node name="Label3D" type="Label3D" parent="Bins/CompostBin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+text = "COMPOST"
+font_size = 32
+
+[node name="LandfillBin" type="Area3D" parent="Bins"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 0)
+script = ExtResource("3_targetzone")
+accepted_tags = Array[String](["landfill"])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bins/LandfillBin"]
+shape = SubResource("BoxShape3D_bin")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Bins/LandfillBin"]
+mesh = SubResource("BoxMesh_bin")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Bins/LandfillBin"]
+max_distance = 3.0
+
+[node name="Label3D" type="Label3D" parent="Bins/LandfillBin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+text = "LANDFILL"
+font_size = 32
+
+[node name="SpawnPoint" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -0.5)
+
+[node name="FeedbackManager" type="Node3D" parent="."]
+script = ExtResource("4_feedback")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="FeedbackManager"]
+max_distance = 5.0

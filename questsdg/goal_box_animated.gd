@@ -9,7 +9,11 @@ var anim1Frames:SpriteFrames
 
 @export var goal_num1:int = 2
 
-signal bounce  
+signal bounce
+signal mini_scene_requested(goal_number: int)
+
+var hand_inside: Hand = null
+var can_trigger_mini_scene: bool = true  
 
 func make_invisible():
 	fade_tween = null
@@ -69,7 +73,25 @@ func _ready() -> void:
 	
 	pass # Replace with function body.
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-		pass
-# Replace with function body.
+	if hand_inside and hand_inside.pinching and can_trigger_mini_scene:
+		_trigger_mini_scene()
+
+func _trigger_mini_scene() -> void:
+	can_trigger_mini_scene = false
+	emit_signal("mini_scene_requested", goal_num1)
+
+func _on_area_3d_area_entered(area: Area3D) -> void:
+	if area.name.contains("hand"):
+		var potential_hand = area.get_parent()
+		if potential_hand is Hand:
+			hand_inside = potential_hand
+
+func _on_area_3d_area_exited(area: Area3D) -> void:
+	if area.name.contains("hand"):
+		var potential_hand = area.get_parent()
+		if potential_hand == hand_inside:
+			hand_inside = null
+
+func reset_mini_scene_trigger() -> void:
+	can_trigger_mini_scene = true
