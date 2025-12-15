@@ -15,6 +15,7 @@ func _ready() -> void:
 
 	_setup_mini_scene_manager()
 	_connect_animated_boxes()
+	_connect_static_boxes()
 
 func _setup_mini_scene_manager() -> void:
 	mini_scene_manager = MiniSceneManager.new()
@@ -30,6 +31,16 @@ func _connect_animated_boxes() -> void:
 		return
 
 	for child in ani_goals.get_children():
+		if child.has_signal("mini_scene_requested"):
+			child.mini_scene_requested.connect(_on_mini_scene_requested)
+
+func _connect_static_boxes() -> void:
+	var goals = get_node_or_null("tu dub/goals")
+	if not goals:
+		push_warning("goals node not found")
+		return
+
+	for child in goals.get_children():
 		if child.has_signal("mini_scene_requested"):
 			child.mini_scene_requested.connect(_on_mini_scene_requested)
 

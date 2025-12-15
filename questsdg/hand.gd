@@ -1,26 +1,33 @@
-class_name Hand
+class_name XRPinchHand
 
 extends XRNode3D
 
 signal pinch_started
 signal pinch_ended
+signal object_released(object: RigidBody3D)
 
 @export var selected = false
 @export var pinching = false
 
-var held_object: XRGrabbable = null
-var nearby_grabbables: Array[XRGrabbable] = []
+var held_object: RigidBody3D = null
+var nearby_grabbables: Array[Node3D] = []
 
-# Called when the node enters the scene tree for the first time.
+# Stored state for held object
+var _held_original_freeze: bool = false
+var _held_original_gravity: float = 1.0
+var _held_original_layer: int = 0
+var _held_original_mask: int = 0
+
 func _ready() -> void:
 	$HandPoseDetector.connect("pose_started", _on_hand_pose_detector_pose_started)
 	$HandPoseDetector.connect("pose_ended", _on_hand_pose_detector_pose_ended)
-	pass # Replace with function body.
 
-var force = Vector3.ZERO
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	_check_for_grab()
+
+	# Move held object to hand position
+	if held_object and is_instance_valid(held_object):
+		held_object.global_position = global_position
 
 
 func _on_hand_pose_detector_pose_started(p_name: String) -> void:
@@ -61,28 +68,59 @@ func _check_for_grab() -> void:
 		_release_held_object()
 
 func _try_grab_nearest() -> void:
-	var nearest: XRGrabbable = null
+	var nearest: RigidBody3D = null
 	var nearest_dist: float = INF
 
 	for grabbable in nearby_grabbables:
 		if not is_instance_valid(grabbable):
 			continue
+		if not grabbable is RigidBody3D:
+			continue
 		var dist = global_position.distance_to(grabbable.global_position)
 		if dist < nearest_dist:
 			nearest_dist = dist
-			nearest = grabbable
+			nearest = grabbable as RigidBody3D
 
-	if nearest and nearest.try_grab(self):
-		held_object = nearest
+	if not nearest:
+		return
+
+	# Store original physics state
+	_held_original_freeze = nearest.freeze
+	_held_original_gravity = nearest.gravity_scale
+	_held_original_layer = nearest.collision_layer
+	_held_original_mask = nearest.collision_mask
+
+	# Disable physics while held
+	nearest.freeze = true
+	nearest.linear_velocity = Vector3.ZERO
+	nearest.angular_velocity = Vector3.ZERO
+
+	held_object = nearest
 
 func _release_held_object() -> void:
-	if held_object:
-		held_object.release()
+	if not held_object or not is_instance_valid(held_object):
 		held_object = null
+		return
 
-func register_nearby_grabbable(grabbable: XRGrabbable) -> void:
+	var released = held_object
+	held_object = null
+
+	# FORCE physics to be active - ignore original state
+	released.freeze = false
+	released.gravity_scale = 1.0
+	released.collision_layer = _held_original_layer
+	released.collision_mask = _held_original_mask
+
+	# Clear any residual velocity
+	released.linear_velocity = Vector3.ZERO
+	released.angular_velocity = Vector3.ZERO
+
+	# Emit signal for other systems (like bin detection)
+	object_released.emit(released)
+
+func register_nearby_grabbable(grabbable: Node3D) -> void:
 	if grabbable and not nearby_grabbables.has(grabbable):
 		nearby_grabbables.append(grabbable)
 
-func unregister_nearby_grabbable(grabbable: XRGrabbable) -> void:
+func unregister_nearby_grabbable(grabbable: Node3D) -> void:
 	nearby_grabbables.erase(grabbable)

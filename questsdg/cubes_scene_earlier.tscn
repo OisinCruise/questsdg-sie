@@ -61907,6 +61907,7 @@ sprite_frames = SubResource("SpriteFrames_p8hdc")
 [node name="goal_box_animated12" parent="tu dub/ani_goals" instance=ExtResource("38_dqovh")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1000, 0)
 visible = false
+goal_num1 = 12
 
 [node name="playlist_looper" parent="tu dub/ani_goals/goal_box_animated12" index="1"]
 sounds = Array[AudioStream]([ExtResource("35_rarkd")])
@@ -62230,6 +62231,8 @@ metadata/_custom_type_script = "uid://dya4sxc8awaw0"
 
 [node name="left_hand" type="Area3D" parent="XROrigin3D/left"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0680579, 0.159387)
+collision_layer = 1
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="XROrigin3D/left/left_hand"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.144068)
@@ -62255,6 +62258,8 @@ script = ExtResource("2_p7tmn")
 
 [node name="right_hand" type="Area3D" parent="XROrigin3D/right"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0676188, 0.159387)
+collision_layer = 1
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="XROrigin3D/right/right_hand"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.144068)

@@ -1,6 +1,8 @@
 extends Area3D
 
-@export var image:Texture 
+signal mini_scene_requested(goal_number: int)
+
+@export var image:Texture
 
 var inside:bool = false
 
@@ -10,6 +12,7 @@ var mats = []
 
 
 var ani_box
+var pinch_triggered: bool = false
 
 func set_texture(mesh:MeshInstance3D):
 	var mat:StandardMaterial3D = mesh.get_surface_override_material(0)
@@ -18,8 +21,8 @@ func set_texture(mesh:MeshInstance3D):
 	mesh.set_surface_override_material(0, mat)
 	mats.push_back(mat)
 	
-var left:Hand
-var right:Hand
+var left: XRPinchHand
+var right: XRPinchHand
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -44,20 +47,18 @@ var fade_out_tween:Tween = null
 
 func make_invisible():
 	fade_out_tween = null
-	monitoring = false        # Stops detecting other bodies entering/exiting
-	monitorable = false 
-	
+	monitoring = false
+	monitorable = false
+
 	ani_box = get_parent().ani_boxes[goal - 1]
 	ani_box.position = position
 	ani_box.rotation = rotation
 	ani_box.visible = true
-	# ani_box.get_node
 	ani_box.bounce_in()
 	Talo.events.track("Goal " + str(goal) + " thumbs up")
 	Talo.events.flush()
 	inside = false
 	deactivate()
-	# get_parent().add_child(ani_box)
 	
 	
 func fade_out():
@@ -79,16 +80,21 @@ func fade_out():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	# rotate_y(delta)
-	# rotate_x(delta)
-	
-	if inside && hand.selected:
-		fade_out()		
-	pass
+	if inside and hand:
+		# ThumbsUp triggers the animated box transition (original behavior)
+		if hand.selected:
+			fade_out()
+		# Pinch directly triggers mini-scene (shortcut for Goal interactions)
+		elif hand.pinching and not pinch_triggered:
+			pinch_triggered = true
+			emit_signal("mini_scene_requested", goal)
+			# Reset after a delay to allow re-triggering
+			await get_tree().create_timer(1.0).timeout
+			pinch_triggered = false
 
 var hand
 
-func _on_area_entered(area: Area3D) -> void:	
+func _on_area_entered(area: Area3D) -> void:
 	if area.name.contains("hand"):
 		if ! area.get_parent().selected:
 			play_sound()
@@ -99,7 +105,6 @@ func _on_area_entered(area: Area3D) -> void:
 			scale = Vector3.ONE
 			t.tween_property(self, "scale", big_scale, 1)
 			inside = true
-	pass # Replace with function body.
 
 var big_scale = Vector3(1.25, 1.25, 1.25)
 

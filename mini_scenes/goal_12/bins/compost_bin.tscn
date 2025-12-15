@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3 uid="uid://compost_bin_001"]
+
+[ext_resource type="Script" path="res://questsdg/target_zone.gd" id="1_target_zone"]
+[ext_resource type="PackedScene" path="res://mini_scenes/goal_12/bins/trash_bin_pack_low_poly.glb" id="2_bin_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(0.4, 0.6, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.4, 0.6, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.6, 0.4, 0.2, 1)
+
+[node name="CompostBin" type="Node3D"]
+
+[node name="BinModel" parent="." instance=ExtResource("2_bin_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="PlaceholderMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+mesh = SubResource("BoxMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="TargetZone" type="Area3D" parent="."]
+script = ExtResource("1_target_zone")
+accepted_tags = Array[String](["compostable"])
+consume_object = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TargetZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("BoxShape3D_1")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+pixel_size = 0.005
+text = "COMPOST"
+font_size = 64
+outline_size = 12
+modulate = Color(0.7, 0.5, 0.2, 1)
+outline_modulate = Color(0, 0, 0, 1)
+horizontal_alignment = 1
+vertical_alignment = 1

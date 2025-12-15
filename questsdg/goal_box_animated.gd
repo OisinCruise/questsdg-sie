@@ -12,7 +12,7 @@ var anim1Frames:SpriteFrames
 signal bounce
 signal mini_scene_requested(goal_number: int)
 
-var hand_inside: Hand = null
+var hand_inside: XRPinchHand = null
 var can_trigger_mini_scene: bool = true  
 
 func make_invisible():
@@ -20,6 +20,7 @@ func make_invisible():
 
 func bounce_in():
 	$Area3D.monitoring = true
+	$Area3D.monitorable = true
 	$Area3D/scaler/front.play("default")
 	$Area3D/scaler/bott.play("default")
 	$Area3D/scaler/left.play("default")
@@ -50,6 +51,14 @@ var lerp_target:Vector3
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	$Area3D.monitoring = false
+	$Area3D.monitorable = true
+
+	# Connect Area3D signals in code to ensure they work
+	if not $Area3D.area_entered.is_connected(_on_area_3d_area_entered):
+		$Area3D.area_entered.connect(_on_area_3d_area_entered)
+	if not $Area3D.area_exited.is_connected(_on_area_3d_area_exited):
+		$Area3D.area_exited.connect(_on_area_3d_area_exited)
+
 	anim0Frames = $Area3D/scaler/front.sprite_frames
 	anim1Frames = $Area3D/scaler/bott.sprite_frames
 	
@@ -84,7 +93,7 @@ func _trigger_mini_scene() -> void:
 func _on_area_3d_area_entered(area: Area3D) -> void:
 	if area.name.contains("hand"):
 		var potential_hand = area.get_parent()
-		if potential_hand is Hand:
+		if potential_hand is XRPinchHand:
 			hand_inside = potential_hand
 
 func _on_area_3d_area_exited(area: Area3D) -> void:

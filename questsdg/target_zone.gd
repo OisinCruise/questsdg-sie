@@ -1,7 +1,7 @@
 class_name TargetZone
 extends Area3D
 
-signal object_placed(object: XRGrabbable, correct: bool)
+signal object_placed(object: Node3D, correct: bool)
 
 @export var accepted_tags: Array[String] = []
 @export var feedback_correct: AudioStream = null
@@ -27,23 +27,37 @@ func _on_area_entered(area: Area3D) -> void:
 		_process_grabbable(grabbable)
 
 func _on_body_entered(body: Node3D) -> void:
+	# Handle XRGrabbable
 	if body is XRGrabbable:
 		_process_grabbable(body)
+	# Handle any RigidBody3D in the "grabbable" group (scene_grabbable)
+	elif body is RigidBody3D and body.is_in_group("grabbable"):
+		_process_grabbable(body)
 
-func _find_grabbable(node: Node) -> XRGrabbable:
+func _find_grabbable(node: Node) -> Node3D:
 	if node is XRGrabbable:
 		return node
 	if node.get_parent() is XRGrabbable:
 		return node.get_parent()
+	# Check for scene_grabbable (RigidBody3D in grabbable group)
+	if node is RigidBody3D and node.is_in_group("grabbable"):
+		return node
+	if node.get_parent() is RigidBody3D and node.get_parent().is_in_group("grabbable"):
+		return node.get_parent()
 	return null
 
-func _process_grabbable(grabbable: XRGrabbable) -> void:
-	if grabbable.is_grabbed:
+func _process_grabbable(grabbable: Node3D) -> void:
+	# Check if grabbed (works for both XRGrabbable and scene_grabbable)
+	if grabbable.get("is_grabbed"):
 		return
 
 	var is_correct = check_if_correct(grabbable)
 	_play_feedback(is_correct)
-	grabbable.on_placed_in_target(self)
+
+	# Call on_placed_in_target if method exists
+	if grabbable.has_method("on_placed_in_target"):
+		grabbable.on_placed_in_target(self)
+
 	emit_signal("object_placed", grabbable, is_correct)
 
 	if consume_object:
@@ -51,7 +65,7 @@ func _process_grabbable(grabbable: XRGrabbable) -> void:
 		tween.tween_property(grabbable, "scale", Vector3.ZERO, 0.3)
 		tween.finished.connect(func(): grabbable.queue_free())
 
-func check_if_correct(grabbable: XRGrabbable) -> bool:
+func check_if_correct(grabbable: Node3D) -> bool:
 	for tag in accepted_tags:
 		if grabbable.is_in_group(tag):
 			return true

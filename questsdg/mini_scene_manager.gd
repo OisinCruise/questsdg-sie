@@ -8,6 +8,8 @@ signal task_completed(goal_number: int, success: bool)
 var current_mini_scene: MiniScene = null
 var xr_origin: XROrigin3D = null
 var is_transitioning: bool = false
+var maps_node: Node3D = null
+var maps_fade_tween: Tween = null
 
 func _ready() -> void:
 	xr_origin = get_tree().get_first_node_in_group("xr_origin")
@@ -15,6 +17,12 @@ func _ready() -> void:
 		var origins = get_tree().get_nodes_in_group("xr_origin")
 		if origins.size() > 0:
 			xr_origin = origins[0]
+
+	# Find maps node for fade effect during mini-scenes
+	await get_tree().process_frame
+	maps_node = get_tree().root.get_node_or_null("cubes_scene/tu dub/maps")
+	if not maps_node:
+		maps_node = get_tree().root.get_node_or_null("cubes_scene_earlier/tu dub/maps")
 
 func open_mini_scene(goal_number: int) -> void:
 	if current_mini_scene or is_transitioning:
@@ -29,11 +37,15 @@ func open_mini_scene(goal_number: int) -> void:
 		is_transitioning = false
 		return
 
+	# Fade out maps before opening mini-scene
+	_fade_out_maps()
+
 	var scene_res = load(scene_path)
 	if scene_res:
 		current_mini_scene = scene_res.instantiate()
 		add_child(current_mini_scene)
 
+		# Position scene relative to XR origin
 		if xr_origin:
 			current_mini_scene.global_position = xr_origin.global_position
 
@@ -61,6 +73,9 @@ func close_current_scene(success: bool = true) -> void:
 	current_mini_scene.queue_free()
 	current_mini_scene = null
 
+	# Fade maps back in after mini-scene closes
+	_fade_in_maps()
+
 	emit_signal("scene_closed", goal_num)
 	emit_signal("task_completed", goal_num, success)
 
@@ -74,3 +89,26 @@ func _on_task_completed(success: bool) -> void:
 
 func is_in_mini_scene() -> bool:
 	return current_mini_scene != null
+
+func _fade_out_maps() -> void:
+	if not maps_node:
+		return
+
+	if maps_fade_tween and maps_fade_tween.is_running():
+		maps_fade_tween.kill()
+
+	maps_fade_tween = create_tween().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
+	maps_fade_tween.tween_property(maps_node, "scale", Vector3.ZERO, 1.0)
+	maps_fade_tween.tween_callback(func(): maps_node.visible = false)
+
+func _fade_in_maps() -> void:
+	if not maps_node:
+		return
+
+	if maps_fade_tween and maps_fade_tween.is_running():
+		maps_fade_tween.kill()
+
+	maps_node.visible = true
+	maps_node.scale = Vector3.ZERO
+	maps_fade_tween = create_tween().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
+	maps_fade_tween.tween_property(maps_node, "scale", Vector3.ONE, 1.0)

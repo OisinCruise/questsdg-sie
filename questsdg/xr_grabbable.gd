@@ -1,15 +1,15 @@
 class_name XRGrabbable
 extends RigidBody3D
 
-signal grabbed(hand: Hand)
-signal released(hand: Hand)
+signal grabbed(hand: XRPinchHand)
+signal released(hand: XRPinchHand)
 signal placed_in_target(target: Node3D)
 
-@export var grab_distance: float = 0.15
+@export var grab_distance: float = 0.5  # Increased for better XR grabbing
 @export var highlight_material: Material = null
 
 var is_grabbed: bool = false
-var grabbing_hand: Hand = null
+var grabbing_hand: XRPinchHand = null
 var original_parent: Node = null
 var original_freeze: bool = false
 
@@ -19,8 +19,14 @@ func _ready() -> void:
 	_setup_detection_area()
 
 func _setup_detection_area() -> void:
-	if not has_node("GrabArea"):
-		var area = Area3D.new()
+	var area: Area3D
+	if has_node("GrabArea"):
+		area = $GrabArea
+		# Update collision settings
+		area.collision_layer = 0
+		area.collision_mask = 1
+	else:
+		area = Area3D.new()
 		area.name = "GrabArea"
 		area.collision_layer = 0
 		area.collision_mask = 1
@@ -30,26 +36,30 @@ func _setup_detection_area() -> void:
 		shape.shape = sphere
 		area.add_child(shape)
 		add_child(area)
+
+	# Connect signals if not already connected
+	if not area.area_entered.is_connected(_on_grab_area_entered):
 		area.area_entered.connect(_on_grab_area_entered)
+	if not area.area_exited.is_connected(_on_grab_area_exited):
 		area.area_exited.connect(_on_grab_area_exited)
 
 func _on_grab_area_entered(area: Area3D) -> void:
 	if area.name.contains("hand"):
 		var potential_hand = area.get_parent()
-		if potential_hand is Hand:
+		if potential_hand is XRPinchHand:
 			potential_hand.register_nearby_grabbable(self)
 
 func _on_grab_area_exited(area: Area3D) -> void:
 	if area.name.contains("hand"):
 		var potential_hand = area.get_parent()
-		if potential_hand is Hand:
+		if potential_hand is XRPinchHand:
 			potential_hand.unregister_nearby_grabbable(self)
 
 func _physics_process(_delta: float) -> void:
 	if is_grabbed and grabbing_hand:
 		global_position = grabbing_hand.global_position
 
-func try_grab(hand: Hand) -> bool:
+func try_grab(hand: XRPinchHand) -> bool:
 	if is_grabbed:
 		return false
 
@@ -63,11 +73,13 @@ func try_grab(hand: Hand) -> bool:
 	_do_grab(hand)
 	return true
 
-func _do_grab(hand: Hand) -> void:
+func _do_grab(hand: XRPinchHand) -> void:
 	is_grabbed = true
 	grabbing_hand = hand
 	original_freeze = freeze
 	freeze = true
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
 
 	if highlight_material:
 		_apply_highlight(false)
