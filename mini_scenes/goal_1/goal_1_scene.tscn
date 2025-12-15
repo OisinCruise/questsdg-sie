@@ -1,0 +1,44 @@
+[gd_scene load_steps=7 format=3 uid="uid://64eimgok3bhk"]
+
+[ext_resource type="Script" uid="uid://clb5jvs3d683o" path="res://mini_scenes/goal_1/goal_1_scene.gd" id="1_44fei"]
+[ext_resource type="Script" uid="uid://q8iyfio56ilg" path="res://questsdg/intro_sequence.gd" id="1_tkf78"]
+[ext_resource type="AudioStream" uid="uid://cy78ftcl5bwxt" path="res://sounds/PowerUp10.wav" id="2_44fei"]
+[ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="3_y4f6b"]
+[ext_resource type="AudioStream" uid="uid://cxstxe6abanfh" path="res://sounds/swish-sound-94707.mp3" id="4_7lgeb"]
+[ext_resource type="PackedScene" uid="uid://bxx274a0hhpq1" path="res://mini_scenes/goal_1/assets/simple_low_poly_water_pump/water_pump.tscn" id="6_y4f6b"]
+
+[node name="Goal1Scene" type="Node3D"]
+script = ExtResource("1_44fei")
+
+[node name="IntroSequence" type="Node3D" parent="."]
+script = ExtResource("1_tkf78")
+whistle_sound = ExtResource("2_44fei")
+
+[node name="WhistleAudio" type="AudioStreamPlayer3D" parent="IntroSequence"]
+stream = ExtResource("2_44fei")
+max_distance = 10.0
+
+[node name="Sustainabot" parent="." instance=ExtResource("3_y4f6b")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.3, 0.2575965, -1.1039106)
+gibberish_sounds = Array[AudioStream]([ExtResource("4_7lgeb")])
+
+[node name="SpawnPoint" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.5)
+
+[node name="WaterPump" type="Node3D" parent="."]
+
+[node name="PumpModel" parent="WaterPump" instance=ExtResource("6_y4f6b")]
+
+[node name="PumpHandle" type="RigidBody3D" parent="WaterPump"]
+
+[node name="HandleMesh" type="MeshInstance3D" parent="WaterPump/PumpHandle"]
+
+[node name="HandleCollision" type="CollisionShape3D" parent="WaterPump/PumpHandle"]
+
+[node name="HandDetectArea" type="Area3D" parent="WaterPump/PumpHandle"]
+
+[node name="DetectShape" type="CollisionShape3D" parent="WaterPump/PumpHandle/HandDetectArea"]
+
+[node name="WaterOutput" type="Node3D" parent="WaterPump"]
+
+[node name="OutputMarker" type="MeshInstance3D" parent="WaterPump/WaterOutput"]
