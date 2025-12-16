@@ -37,6 +37,15 @@ import_script/path=""
 materials/extract=0
 materials/extract_format=0
 materials/extract_path=""
-_subresources={}
+_subresources={
+"nodes": {
+"PATH:Sketchfab_model/9c843c7cebc94a69a6ea076efaeb803b_fbx/Object_2/RootNode/polySurface122/polySurface12_balde_0": {
+"generate/physics": true
+},
+"PATH:Sketchfab_model/9c843c7cebc94a69a6ea076efaeb803b_fbx/Object_2/RootNode/polySurface122/polySurface12_lambert1_0": {
+"generate/physics": true
+}
+}
+}
 gltf/naming_version=2
 gltf/embedded_image_handling=1

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://tfqxs5814a5b"]
+
+[ext_resource type="PackedScene" uid="uid://cruhc2df7hyb3" path="res://mini_scenes/goal_1/assets/low_poly_bucket/scene.gltf" id="1_32ue1"]
+
+[node name="Bucket" instance=ExtResource("1_32ue1")]
+transform = Transform3D(15, 0, 0, 0, 15, 0, 0, 0, 15, 0, -0.06898719, 0)
