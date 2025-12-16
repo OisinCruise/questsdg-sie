@@ -12,6 +12,8 @@ signal object_released(object: RigidBody3D)
 var held_object: RigidBody3D = null
 var nearby_grabbables: Array[Node3D] = []
 
+@export var grab_smoothing: float = 15.0  # Higher = faster following, lower = smoother
+
 # Stored state for held object
 var _held_original_freeze: bool = false
 var _held_original_gravity: float = 1.0
@@ -22,12 +24,12 @@ func _ready() -> void:
 	$HandPoseDetector.connect("pose_started", _on_hand_pose_detector_pose_started)
 	$HandPoseDetector.connect("pose_ended", _on_hand_pose_detector_pose_ended)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	_check_for_grab()
 
-	# Move held object to hand position
+	# Move held object to hand position with smoothing
 	if held_object and is_instance_valid(held_object):
-		held_object.global_position = global_position
+		held_object.global_position = held_object.global_position.lerp(global_position, grab_smoothing * delta)
 
 
 func _on_hand_pose_detector_pose_started(p_name: String) -> void:

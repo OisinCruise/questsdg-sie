@@ -8,6 +8,7 @@ signal released(hand: Node3D)
 signal placed_in_target(target: Node3D)
 
 @export var grab_distance: float = 0.5
+@export var grab_smoothing: float = 15.0  # Higher = faster following, lower = smoother
 
 var is_grabbed: bool = false
 var grabbing_hand: Node3D = null
@@ -54,12 +55,10 @@ func _get_position_relative_to(node: Node3D, relative_to: Node3D) -> Vector3:
 
 	return result_transform.origin
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if is_grabbed and grabbing_hand and is_instance_valid(grabbing_hand):
-		# Follow hand position (global coordinates for hand tracking)
-		global_position = grabbing_hand.global_position
-		linear_velocity = Vector3.ZERO
-		angular_velocity = Vector3.ZERO
+		# Follow hand position with smoothing (reduces jitter from hand tracking)
+		global_position = global_position.lerp(grabbing_hand.global_position, grab_smoothing * delta)
 
 	# Always sync visual node to follow physics body movement
 	_sync_visual_node()

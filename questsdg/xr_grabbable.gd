@@ -7,6 +7,7 @@ signal placed_in_target(target: Node3D)
 
 @export var grab_distance: float = 0.5  # Increased for better XR grabbing
 @export var highlight_material: Material = null
+@export var grab_smoothing: float = 15.0  # Higher = faster following, lower = smoother
 
 var is_grabbed: bool = false
 var grabbing_hand: XRPinchHand = null
@@ -55,9 +56,9 @@ func _on_grab_area_exited(area: Area3D) -> void:
 		if potential_hand is XRPinchHand:
 			potential_hand.unregister_nearby_grabbable(self)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if is_grabbed and grabbing_hand:
-		global_position = grabbing_hand.global_position
+		global_position = global_position.lerp(grabbing_hand.global_position, grab_smoothing * delta)
 
 func try_grab(hand: XRPinchHand) -> bool:
 	if is_grabbed:
