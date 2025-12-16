@@ -1,0 +1,91 @@
+[gd_scene load_steps=14 format=3 uid="uid://0et1lmbjwpk7"]
+
+[ext_resource type="PackedScene" uid="uid://cwoqk5ursgemj" path="res://mini_scenes/goal_2/assets/free_hyper_casual_street_food_pack/scene.gltf" id="1_275an"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_275an"]
+render_priority = 1
+albedo_color = Color(0.6306488, 0.00031390876, 0.6356393, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vccui"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3ryea"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yecn5"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_drd1h"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0guu1"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_60btl"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l872o"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hes6i"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i6vkw"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rx7ea"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vopu7"]
+render_priority = 1
+albedo_color = Color(0.6313726, 0, 0.63529414, 1)
+
+[node name="BadFood" instance=ExtResource("1_275an")]
+
+[node name="F_Latin_Corn_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Latin_Corn_LOD0/F_Latin_Corn_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_275an")
+gi_mode = 0
+
+[node name="F_Latin_Taco_Classic_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Latin_Taco_Classic_LOD0/F_Latin_Taco_Classic_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_vccui")
+
+[node name="F_Europe_Bakery_Waffles_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Europe_Bakery_Waffles_LOD0/F_Europe_Bakery_Waffles_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_3ryea")
+
+[node name="F_Asia_Onigiri_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Asia_Onigiri_LOD0/F_Asia_Onigiri_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_yecn5")
+
+[node name="F_Asia_Takoyaki_Small_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Asia_Takoyaki_Small_LOD0/F_Asia_Takoyaki_Small_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_drd1h")
+
+[node name="F_Europe_Bakery_Donut_Chocolate_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Europe_Bakery_Donut_Chocolate_LOD0/F_Europe_Bakery_Donut_Chocolate_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_0guu1")
+
+[node name="F_Europe_Bakery_French_Baguette_Half_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Europe_Bakery_French_Baguette_Half_LOD0/F_Europe_Bakery_French_Baguette_Half_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_60btl")
+
+[node name="F_Europe_Burger_Hamburger_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Europe_Burger_Hamburger_LOD0/F_Europe_Burger_Hamburger_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_l872o")
+
+[node name="F_Europe_Hotdog_Hotdog_Classic_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Europe_Hotdog_Hotdog_Classic_LOD0/F_Europe_Hotdog_Hotdog_Classic_LOD0_streetFood_0" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 7.1054274e-15, 0, -7.1054274e-15, 1, 0, 0, 0)
+material_overlay = SubResource("StandardMaterial3D_hes6i")
+
+[node name="F_Europe_Pasta_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Europe_Pasta_LOD0/F_Europe_Pasta_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_i6vkw")
+
+[node name="F_Europe_Pizza_Pepperoni_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Europe_Pizza_Pepperoni_LOD0/F_Europe_Pizza_Pepperoni_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_rx7ea")
+
+[node name="F_Asia_Dumplings_LOD0_streetFood_0" parent="Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/RootNode/F_Asia_Dumplings_LOD0/F_Asia_Dumplings_LOD0_streetFood_0" index="0"]
+material_overlay = SubResource("StandardMaterial3D_vopu7")

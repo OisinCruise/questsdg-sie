@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://5php0s8mw5k2"]
+
+[ext_resource type="PackedScene" uid="uid://dwdhykatgnfb3" path="res://mini_scenes/goal_2/assets/conveyor_belt/scene.gltf" id="1_1cp13"]
+
+[node name="ConveyorBelt" instance=ExtResource("1_1cp13")]

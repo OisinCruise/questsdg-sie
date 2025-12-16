@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://brkbli3ic724x"]
+
+[ext_resource type="PackedScene" uid="uid://d360qys0wbysm" path="res://mini_scenes/goal_2/assets/wood_crate/scene.gltf" id="1_ja1ru"]
+
+[node name="Crate" instance=ExtResource("1_ja1ru")]
