@@ -199,13 +199,17 @@ func _on_object_released(object: RigidBody3D) -> void:
 	# Wait a brief moment for physics to settle
 	await get_tree().create_timer(0.3).timeout
 
-	# Check if object is in a bin
-	if object in objects_in_recycling:
-		var correct = object.is_in_group("recyclable")
-		_handle_item_sorted(object, correct)
-	elif object in objects_in_waste:
-		var correct = object.is_in_group("waste")
-		_handle_item_sorted(object, correct)
+	# Check object is still valid after await
+	if not is_instance_valid(object):
+		return
+
+	# Check if object is in a bin - both bins make trash disappear
+	# WASTE bin = correct (trash bags belong there)
+	# RECYCLING bin = incorrect (trash bags don't belong there)
+	if object in objects_in_waste:
+		_handle_item_sorted(object, true)  # Correct placement
+	elif object in objects_in_recycling:
+		_handle_item_sorted(object, false)  # Incorrect placement
 
 func _create_trash_bags() -> void:
 	for bag_path in TRASH_BAG_PATHS:
@@ -240,11 +244,15 @@ func _make_trash_bag_physics(trash_bag_node: Node3D) -> RigidBody3D:
 	rigid_body.name = trash_bag_node.name + "_Physics"
 	rigid_body.collision_layer = 2  # Layer 2 for trash bags
 	rigid_body.collision_mask = 1   # Collide with layer 1 (environment)
-	rigid_body.gravity_scale = 1.0
 	rigid_body.mass = 0.3
 	rigid_body.linear_damp = 2.0
 	rigid_body.angular_damp = 2.0
-	rigid_body.freeze = true  # Start frozen until intro completes
+	# DON'T use freeze = true - frozen bodies don't trigger Area3D body_entered signals!
+	# Instead, use gravity_scale = 0 to keep physics active but prevent movement
+	rigid_body.freeze = false
+	rigid_body.gravity_scale = 0.0  # Disabled until intro completes
+	rigid_body.linear_velocity = Vector3.ZERO
+	rigid_body.angular_velocity = Vector3.ZERO
 
 	# Group for sorting logic
 	rigid_body.add_to_group("waste")
@@ -301,20 +309,20 @@ func _on_intro_completed() -> void:
 func _enable_trash_bags() -> void:
 	for bag in trash_bags:
 		if is_instance_valid(bag):
-			bag.freeze = false
+			# Enable gravity (body was never frozen, just had gravity disabled)
+			bag.gravity_scale = 1.0
 
 func _physics_process(delta: float) -> void:
 	# Apply manual gravity and sync visuals for trash bags (since world gravity is 0)
 	for bag in trash_bags:
 		if is_instance_valid(bag):
-			# Apply gravity force to unfrozen bags: F = m * g (9.8 m/s²)
-			if not bag.freeze:
+			# Only apply gravity when enabled (gravity_scale > 0, after intro)
+			if bag.gravity_scale > 0:
 				bag.apply_central_force(Vector3(0, -9.8 * bag.mass, 0))
-
 				# Keep objects upright - apply corrective torque
 				_apply_upright_correction(bag, delta)
 
-			# Sync visual nodes to follow physics bodies
+			# Always sync visual nodes to follow physics bodies
 			if bag.has_meta("visual_node"):
 				var visual = bag.get_meta("visual_node") as Node3D
 				if visual and is_instance_valid(visual):
@@ -360,10 +368,13 @@ func _handle_item_sorted(object: RigidBody3D, correct: bool) -> void:
 		_emit_confetti_at(item_pos + Vector3(0, 0.2, 0))
 		if sustainabot:
 			sustainabot.set_state("commending")
+			sustainabot.show_speech("Correct!", 1.5)
 		report_action(true)
 	else:
 		if sustainabot:
-			sustainabot.set_state("berating")
+			sustainabot.set_state("berating")  # Uses fist-shake animation
+			var wrong_messages = ["Wrong bin!", "That's not recycling!", "Trash goes in WASTE!", "Try the other bin!"]
+			sustainabot.show_speech(wrong_messages[randi() % wrong_messages.size()], 2.0)
 		report_action(false)
 
 	# Remove from tracked lists
