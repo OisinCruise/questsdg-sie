@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cohbpau5hhc6"]
+[gd_scene load_steps=13 format=3 uid="uid://cohbpau5hhc6"]
 
 [ext_resource type="Script" uid="uid://dfi8pw7es8ie0" path="res://mini_scenes/goal_2/goal_2_scene.gd" id="1_kjpmt"]
 [ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="2_oopbg"]
@@ -9,6 +9,15 @@
 [ext_resource type="PackedScene" uid="uid://7xu1c3up6m1e" path="res://mini_scenes/goal_2/assets/simple_old_metal_table/table.tscn" id="7_5b14s"]
 [ext_resource type="PackedScene" uid="uid://brkbli3ic724x" path="res://mini_scenes/goal_2/assets/wood_crate/crate.tscn" id="8_w7u7o"]
 [ext_resource type="PackedScene" uid="uid://ckqi4lc8tcth8" path="res://mini_scenes/goal_2/assets/Bin/food_bin.tscn" id="9_qum13"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qum13"]
+albedo_color = Color(0.5889683, 0, 0.10181465, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_xgjtq"]
+material = SubResource("StandardMaterial3D_qum13")
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_w8n0k"]
+radius = 0.6
 
 [node name="Goal2Scene" type="Node3D"]
 script = ExtResource("1_kjpmt")
@@ -22,6 +31,18 @@ max_distance = 10.0
 
 [node name="ConveyorBelt" parent="." instance=ExtResource("4_oopbg")]
 transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 0, 0)
+
+[node name="StartStopButton" type="MeshInstance3D" parent="ConveyorBelt"]
+transform = Transform3D(0.08, 0, 0, 0, 0.08, 0, 0, 0, 0.08, 0.99369895, 0.875792, -1.000222)
+mesh = SubResource("SphereMesh_xgjtq")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="ConveyorBelt/StartStopButton"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ConveyorBelt/StartStopButton/StaticBody3D"]
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0)
+shape = SubResource("SphereShape3D_w8n0k")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ConveyorBelt"]
 
 [node name="Foods" type="Node3D" parent="."]
 
