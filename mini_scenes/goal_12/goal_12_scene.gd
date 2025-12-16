@@ -13,6 +13,9 @@ var waste_bin_area: Area3D = null
 var objects_in_recycling: Array[RigidBody3D] = []
 var objects_in_waste: Array[RigidBody3D] = []
 
+# Confetti particles for correct placement
+var confetti_particles: GPUParticles3D = null
+
 # Trash bag paths in scene
 const TRASH_BAG_PATHS = [
 	"Bins/TrashModels/TrashBag1",
@@ -28,40 +31,107 @@ func setup_scene() -> void:
 		intro_sequence.sustainabot = sustainabot
 
 	_setup_bin_areas()
+	_setup_confetti_particles()
 	_connect_sustainabot_hit()
 
 func _setup_bin_areas() -> void:
-	# Create detection area for RecyclingBin
+	# Create detection areas at SCENE ROOT (not as children of scaled bins)
+	# The bins have complex scale hierarchy: Bins(0.2) * TrashModels(0.01) * Bin(18.26)
+	# Adding areas as children would make them tiny (0.5 * 0.03652 = 0.018m)
+
 	if has_node("Bins/TrashModels/RecyclingBin"):
 		var recycling_node = get_node("Bins/TrashModels/RecyclingBin")
-		recycling_bin_area = _create_bin_area(recycling_node, "recycling")
+		var world_pos = recycling_node.global_position
+		recycling_bin_area = _create_bin_area_at_position(world_pos, "recycling")
+	else:
+		push_warning("Goal 12: RecyclingBin node not found!")
 
-	# Create detection area for WasteBin
 	if has_node("Bins/TrashModels/WasteBin"):
 		var waste_node = get_node("Bins/TrashModels/WasteBin")
-		waste_bin_area = _create_bin_area(waste_node, "waste")
+		var world_pos = waste_node.global_position
+		waste_bin_area = _create_bin_area_at_position(world_pos, "waste")
+	else:
+		push_warning("Goal 12: WasteBin node not found!")
 
-func _create_bin_area(parent_node: Node3D, bin_type: String) -> Area3D:
+func _create_bin_area_at_position(world_pos: Vector3, bin_type: String) -> Area3D:
 	var area = Area3D.new()
-	area.name = "BinArea"
+	area.name = "BinArea_" + bin_type
 	area.collision_layer = 0
 	area.collision_mask = 2  # Detect layer 2 (trash bags)
+	area.monitoring = true
+	area.monitorable = false
 	area.set_meta("bin_type", bin_type)
 
+	# Create detection zone at bin rim - using WORLD scale dimensions
 	var shape = CollisionShape3D.new()
-	var box = BoxShape3D.new()
-	box.size = Vector3(0.5, 0.8, 0.5)
-	shape.shape = box
-	shape.position = Vector3(0, 0.4, 0)
+	var cylinder = CylinderShape3D.new()
+	cylinder.radius = 0.25  # 25cm radius for bin opening
+	cylinder.height = 0.4   # 40cm tall detection zone
+	shape.shape = cylinder
 	area.add_child(shape)
 
 	area.body_entered.connect(func(body): _on_bin_body_entered(area, body))
 	area.body_exited.connect(func(body): _on_bin_body_exited(area, body))
 
-	parent_node.add_child(area)
+	# Add to scene root (self) so it's not affected by bin scaling
+	add_child(area)
+
+	# Position at bin location with rim offset (bin opening is near top)
+	area.global_position = world_pos + Vector3(0, 0.3, 0)
+
+	print("Goal 12: Created BinArea for %s at world pos %s" % [bin_type, area.global_position])
 	return area
 
+func _setup_confetti_particles() -> void:
+	confetti_particles = GPUParticles3D.new()
+	confetti_particles.emitting = false
+	confetti_particles.one_shot = true
+	confetti_particles.amount = 50
+	confetti_particles.lifetime = 1.5
+	confetti_particles.explosiveness = 0.9
+
+	var mat = ParticleProcessMaterial.new()
+	mat.direction = Vector3(0, 1, 0)
+	mat.spread = 45.0
+	mat.initial_velocity_min = 2.0
+	mat.initial_velocity_max = 4.0
+	mat.gravity = Vector3(0, -5, 0)
+	mat.angular_velocity_min = -180.0
+	mat.angular_velocity_max = 180.0
+	mat.scale_min = 0.5
+	mat.scale_max = 1.5
+	# Rainbow confetti colors
+	mat.color = Color(1, 1, 1, 1)
+	var gradient = Gradient.new()
+	gradient.set_color(0, Color(1, 0.2, 0.2))  # Red
+	gradient.set_color(1, Color(0.2, 1, 0.2))  # Green
+	gradient.add_point(0.25, Color(1, 1, 0.2))  # Yellow
+	gradient.add_point(0.5, Color(0.2, 0.5, 1))  # Blue
+	gradient.add_point(0.75, Color(1, 0.2, 1))  # Magenta
+	var gradient_tex = GradientTexture1D.new()
+	gradient_tex.gradient = gradient
+	mat.color_ramp = gradient_tex
+	confetti_particles.process_material = mat
+
+	# Simple square mesh for confetti pieces
+	var mesh = QuadMesh.new()
+	mesh.size = Vector2(0.03, 0.03)
+	var mesh_mat = StandardMaterial3D.new()
+	mesh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh_mat.vertex_color_use_as_albedo = true
+	mesh.material = mesh_mat
+	confetti_particles.draw_pass_1 = mesh
+
+	add_child(confetti_particles)
+
+func _emit_confetti_at(position: Vector3) -> void:
+	if confetti_particles:
+		confetti_particles.global_position = position
+		confetti_particles.restart()
+		confetti_particles.emitting = true
+
 func _on_bin_body_entered(bin_area: Area3D, body: Node3D) -> void:
+	print("Goal 12: Body entered bin - %s (is trash: %s)" % [body.name, body in trash_bags])
 	if body is RigidBody3D and body in trash_bags:
 		var bin_type = bin_area.get_meta("bin_type", "")
 		if bin_type == "recycling":
@@ -233,17 +303,50 @@ func _enable_trash_bags() -> void:
 		if is_instance_valid(bag):
 			bag.freeze = false
 
-func _physics_process(_delta: float) -> void:
-	# Sync visual nodes to follow their physics bodies
+func _physics_process(delta: float) -> void:
+	# Apply manual gravity and sync visuals for trash bags (since world gravity is 0)
 	for bag in trash_bags:
-		if is_instance_valid(bag) and bag.has_meta("visual_node"):
-			var visual = bag.get_meta("visual_node") as Node3D
-			if visual and is_instance_valid(visual):
-				visual.global_position = bag.global_position
-				visual.global_rotation = bag.global_rotation
+		if is_instance_valid(bag):
+			# Apply gravity force to unfrozen bags: F = m * g (9.8 m/s²)
+			if not bag.freeze:
+				bag.apply_central_force(Vector3(0, -9.8 * bag.mass, 0))
+
+				# Keep objects upright - apply corrective torque
+				_apply_upright_correction(bag, delta)
+
+			# Sync visual nodes to follow physics bodies
+			if bag.has_meta("visual_node"):
+				var visual = bag.get_meta("visual_node") as Node3D
+				if visual and is_instance_valid(visual):
+					visual.global_position = bag.global_position
+					visual.global_rotation = bag.global_rotation
+
+func _apply_upright_correction(body: RigidBody3D, delta: float) -> void:
+	# Get current up vector and target up vector
+	var current_up = body.global_transform.basis.y
+	var target_up = Vector3.UP
+
+	# Calculate the rotation needed to align current_up with target_up
+	var dot = current_up.dot(target_up)
+
+	# Only apply correction if tilted beyond threshold (dot < 0.99 means > ~8 degrees off)
+	if dot < 0.99:
+		# Calculate correction axis and angle
+		var axis = current_up.cross(target_up)
+		if axis.length_squared() > 0.0001:
+			axis = axis.normalized()
+			# Stronger correction force when more tilted
+			var correction_strength = 15.0 * (1.0 - dot)
+			body.apply_torque(axis * correction_strength)
+
+			# Also dampen existing angular velocity to prevent spinning
+			body.angular_velocity = body.angular_velocity.lerp(Vector3.ZERO, delta * 5.0)
 
 func _handle_item_sorted(object: RigidBody3D, correct: bool) -> void:
 	items_sorted += 1
+
+	# Store position for confetti before hiding
+	var item_pos = object.global_position
 
 	# Hide the visual node
 	if object.has_meta("visual_node"):
@@ -253,6 +356,8 @@ func _handle_item_sorted(object: RigidBody3D, correct: bool) -> void:
 
 	if correct:
 		items_correct += 1
+		# Emit confetti celebration at bin location
+		_emit_confetti_at(item_pos + Vector3(0, 0.2, 0))
 		if sustainabot:
 			sustainabot.set_state("commending")
 		report_action(true)

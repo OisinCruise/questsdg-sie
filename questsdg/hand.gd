@@ -113,8 +113,8 @@ func _release_held_object() -> void:
 	released.collision_layer = _held_original_layer
 	released.collision_mask = _held_original_mask
 
-	# Clear any residual velocity
-	released.linear_velocity = Vector3.ZERO
+	# Apply initial downward velocity (since world gravity is 0, mini-scenes apply manual gravity)
+	released.linear_velocity = Vector3(0, -0.5, 0)
 	released.angular_velocity = Vector3.ZERO
 
 	# Emit signal for other systems (like bin detection)

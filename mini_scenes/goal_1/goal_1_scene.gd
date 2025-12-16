@@ -199,6 +199,26 @@ func _process(delta: float) -> void:
 	if sustainabot and xr_camera and is_game_active:
 		sustainabot.look_at_player(xr_camera.global_position)
 
+	# Apply manual gravity to unfrozen buckets (since world gravity is 0)
+	for bucket in buckets:
+		if is_instance_valid(bucket) and not bucket.freeze:
+			bucket.apply_central_force(Vector3(0, -9.8 * bucket.mass, 0))
+			# Keep buckets upright for easier placement
+			_apply_upright_correction(bucket, delta)
+
+func _apply_upright_correction(body: RigidBody3D, delta_time: float) -> void:
+	var current_up = body.global_transform.basis.y
+	var target_up = Vector3.UP
+	var dot = current_up.dot(target_up)
+
+	if dot < 0.99:
+		var axis = current_up.cross(target_up)
+		if axis.length_squared() > 0.0001:
+			axis = axis.normalized()
+			var correction_strength = 15.0 * (1.0 - dot)
+			body.apply_torque(axis * correction_strength)
+			body.angular_velocity = body.angular_velocity.lerp(Vector3.ZERO, delta_time * 5.0)
+
 func _check_bucket_filling(delta: float) -> void:
 	var spout_pos = water_spout.global_position
 
