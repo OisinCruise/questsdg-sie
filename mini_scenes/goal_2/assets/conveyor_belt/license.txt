@@ -1,0 +1,8 @@
+Model Information:
+* title:	Conveyor Belt
+* source:	https://sketchfab.com/3d-models/conveyor-belt-aff254fbadce40dc82810fdec907eb36
+* author:	TNTbuster. (https://sketchfab.com/Carterk10)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

@@ -1,0 +1,8 @@
+Model Information:
+* title:	Simple Old Metal Table
+* source:	https://sketchfab.com/3d-models/simple-old-metal-table-ad6c97fe939243bc96badb4b36c89e6f
+* author:	MaX3Dd (https://sketchfab.com/MaX3Dd)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

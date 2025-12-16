@@ -1,0 +1,8 @@
+Model Information:
+* title:	Wood Crate
+* source:	https://sketchfab.com/3d-models/wood-crate-8ef8129ff1bf4e0e9e6d5798e806d917
+* author:	Kelvin Cipta (https://sketchfab.com/kelvincipta)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works
