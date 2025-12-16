@@ -2,452 +2,293 @@ extends MiniScene
 
 # Game state
 var buckets_filled: int = 0
-var total_buckets: int = 3
-var game_time_limit: float = 30.0
 var time_remaining: float = 30.0
 var is_game_active: bool = false
-var is_game_complete: bool = false
+var game_over: bool = false
 
 # References
-var intro_sequence: IntroSequence = null
-var water_pump: Node3D = null
-var pump_handle: RigidBody3D = null
-var hand_detect_area: Area3D = null
-var buckets: Array[Node3D] = []
-var bucket_fill_areas: Array[Area3D] = []
-var game_timer: Timer = null
+var buckets: Array = []  # Array of Bucket nodes
+var pump_handle: Area3D = null
+var water_spout: Node3D = null
+var timer_label: Label3D = null
+var score_label: Label3D = null
+var instruction_label: Label3D = null
+var whistle_player: AudioStreamPlayer3D = null
 
-# UI References
-var timer_label: Label = null
-var score_label: Label = null
-var end_screen: Panel = null
-var final_score_label: Label = null
-var buckets_filled_label: Label = null
-var message_label: Label = null
+# Pump state
+var is_pumping: bool = false
+var water_particles: GPUParticles3D = null
+var pump_cooldown: float = 0.0
 
-# Water pump state
-var is_pump_active: bool = false
-var pump_handle_held: bool = false
-var pump_cycles: int = 0
-var water_particles_active: bool = false
-
-# Water particle system (optional - for visual feedback)
-var water_particle_system: GPUParticles3D = null
+# XR references
+var xr_origin: XROrigin3D = null
+var xr_camera: XRCamera3D = null
 
 func setup_scene() -> void:
 	goal_number = 1
-	
-	# Find intro sequence
-	if has_node("IntroSequence"):
-		intro_sequence = $IntroSequence
-		intro_sequence.sustainabot = sustainabot
-		intro_sequence.instruction_text = "Fill as many buckets as you can!\nUse the pump handle to pump water.\nYou have 30 seconds!"
-	
-	# Find water pump components
-	if has_node("WaterPump"):
-		water_pump = $WaterPump
-		if water_pump.has_node("PumpHandle"):
-			pump_handle = water_pump.get_node("PumpHandle")
-			if pump_handle.has_node("HandDetectArea"):
-				hand_detect_area = pump_handle.get_node("HandDetectArea")
-				_setup_hand_detection()
-	
+	_get_references()
+	_setup_water_particles()
+	_connect_pump_handle()
+
+func _get_references() -> void:
 	# Find buckets
-	_find_buckets()
-	
-	# Setup game timer
-	_setup_timer()
-	
-	# Setup UI
-	_setup_ui()
-	
-	# Connect Sustainabot hit detection
-	_connect_sustainabot_hit()
+	if has_node("Buckets"):
+		for child in $Buckets.get_children():
+			if child.has_signal("filled"):  # Check if it's a bucket by signal
+				buckets.append(child)
+				child.filled.connect(_on_bucket_filled)
 
-func _setup_hand_detection() -> void:
-	if not hand_detect_area:
-		return
-	
-	# Connect area signals for hand detection
-	if not hand_detect_area.area_entered.is_connected(_on_hand_area_entered):
-		hand_detect_area.area_entered.connect(_on_hand_area_entered)
-	if not hand_detect_area.area_exited.is_connected(_on_hand_area_exited):
-		hand_detect_area.area_exited.connect(_on_hand_area_exited)
+	# Find pump components
+	if has_node("WaterPump/PumpHandle"):
+		pump_handle = $WaterPump/PumpHandle
+	if has_node("WaterPump/WaterSpout"):
+		water_spout = $WaterPump/WaterSpout
 
-func _on_hand_area_entered(area: Area3D) -> void:
-	# Register pump handle as grabbable
-	var parent = area.get_parent()
-	if parent and parent.has_method("register_nearby_grabbable"):
-		parent.register_nearby_grabbable(pump_handle)
+	# Find UI
+	if has_node("UI/TimerLabel"):
+		timer_label = $UI/TimerLabel
+	if has_node("UI/ScoreLabel"):
+		score_label = $UI/ScoreLabel
+	if has_node("UI/InstructionLabel"):
+		instruction_label = $UI/InstructionLabel
 
-func _on_hand_area_exited(area: Area3D) -> void:
-	# Unregister when hand leaves
-	var parent = area.get_parent()
-	if parent and parent.has_method("unregister_nearby_grabbable"):
-		parent.unregister_nearby_grabbable(pump_handle)
+	# Find audio
+	if has_node("WhistlePlayer"):
+		whistle_player = $WhistlePlayer
 
-func _find_buckets() -> void:
-	buckets.clear()
-	bucket_fill_areas.clear()
-	
-	if not has_node("Buckets"):
-		push_warning("Goal 1: No Buckets node found")
-		return
-	
-	var buckets_node = $Buckets
-	for child in buckets_node.get_children():
-		if child is Node3D:
-			buckets.append(child)
-			# Find FillArea in each bucket
-			if child.has_node("FillArea"):
-				var fill_area = child.get_node("FillArea") as Area3D
-				bucket_fill_areas.append(fill_area)
-				_setup_bucket_area(fill_area, child)
+	# Find XR origin
+	xr_origin = get_tree().get_first_node_in_group("xr_origin")
+	if xr_origin:
+		xr_camera = xr_origin.get_node_or_null("XRCamera3D")
 
-func _setup_bucket_area(fill_area: Area3D, bucket_node: Node3D) -> void:
-	# Connect signals for water detection
-	if not fill_area.body_entered.is_connected(_on_water_entered_bucket):
-		fill_area.body_entered.connect(func(body): _on_water_entered_bucket(fill_area, body))
-	
-	# Store reference to bucket node
-	fill_area.set_meta("bucket_node", bucket_node)
-	fill_area.set_meta("is_filled", false)
+func _setup_water_particles() -> void:
+	water_particles = GPUParticles3D.new()
+	water_particles.emitting = false
+	water_particles.amount = 30
+	water_particles.lifetime = 0.8
+	water_particles.one_shot = false
 
-func _setup_timer() -> void:
-	if has_node("GameTimer"):
-		game_timer = $GameTimer
+	var mat = ParticleProcessMaterial.new()
+	mat.direction = Vector3(0, -1, 0)
+	mat.spread = 10.0
+	mat.initial_velocity_min = 1.5
+	mat.initial_velocity_max = 2.0
+	mat.gravity = Vector3(0, -5, 0)
+	mat.color = Color(0.2, 0.5, 0.9, 0.8)
+	water_particles.process_material = mat
+
+	var mesh = SphereMesh.new()
+	mesh.radius = 0.015
+	mesh.height = 0.03
+	var mesh_mat = StandardMaterial3D.new()
+	mesh_mat.albedo_color = Color(0.2, 0.5, 0.9, 0.7)
+	mesh_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh.material = mesh_mat
+	water_particles.draw_pass_1 = mesh
+
+	if water_spout:
+		water_spout.add_child(water_particles)
 	else:
-		game_timer = Timer.new()
-		game_timer.name = "GameTimer"
-		game_timer.wait_time = 1.0  # Update every second
-		game_timer.one_shot = false
-		add_child(game_timer)
-	
-	game_timer.timeout.connect(_on_timer_tick)
+		add_child(water_particles)
+		water_particles.position = Vector3(0, 0.35, -1.05)
 
-func _setup_ui() -> void:
-	if not has_node("UI"):
-		push_warning("Goal 1: No UI node found")
+func _connect_pump_handle() -> void:
+	if pump_handle:
+		pump_handle.area_entered.connect(_on_pump_area_entered)
+		pump_handle.area_exited.connect(_on_pump_area_exited)
+
+func _on_pump_area_entered(area: Area3D) -> void:
+	if "hand" in area.name.to_lower() or "hand" in area.get_parent().name.to_lower():
+		_activate_pump()
+
+func _on_pump_area_exited(area: Area3D) -> void:
+	if "hand" in area.name.to_lower() or "hand" in area.get_parent().name.to_lower():
+		_deactivate_pump()
+
+func _activate_pump() -> void:
+	if not is_game_active or pump_cooldown > 0:
 		return
-	
-	var ui = $UI
-	if ui.has_node("TimerLabel"):
-		timer_label = ui.get_node("TimerLabel")
-	if ui.has_node("ScoreLabel"):
-		score_label = ui.get_node("ScoreLabel")
-	if ui.has_node("EndScreen"):
-		end_screen = ui.get_node("EndScreen")
-		if end_screen.has_node("FinalScoreLabel"):
-			final_score_label = end_screen.get_node("FinalScoreLabel")
-		if end_screen.has_node("BucketsFilledLabel"):
-			buckets_filled_label = end_screen.get_node("BucketsFilledLabel")
-		if end_screen.has_node("MessageLabel"):
-			message_label = end_screen.get_node("MessageLabel")
-	
-	# Hide end screen initially
-	if end_screen:
-		end_screen.visible = false
-	
-	_update_ui()
+	is_pumping = true
+	if water_particles:
+		water_particles.emitting = true
 
-func _connect_sustainabot_hit() -> void:
-	if sustainabot:
-		sustainabot.hit_by_object.connect(_on_sustainabot_hit)
+func _deactivate_pump() -> void:
+	is_pumping = false
+	if water_particles:
+		water_particles.emitting = false
 
 func start_scene() -> void:
 	super.start_scene()
-	
-	# Reset game state
+
+	# Reset state
 	buckets_filled = 0
-	time_remaining = game_time_limit
+	time_remaining = 30.0
 	is_game_active = false
-	is_game_complete = false
-	pump_cycles = 0
-	
-	# Reset all buckets
-	for fill_area in bucket_fill_areas:
-		fill_area.set_meta("is_filled", false)
-		_reset_bucket_visual(fill_area.get_meta("bucket_node"))
-	
-	# Wait for scene fade-in
-	await get_tree().create_timer(1.6).timeout
-	
-	# Connect hand signals for pump handle
-	_connect_hand_signals()
-	
-	# Run intro sequence
-	if intro_sequence and sustainabot:
-		intro_sequence.intro_completed.connect(_on_intro_completed, CONNECT_ONE_SHOT)
-		intro_sequence.start_intro()
-	else:
-		_start_game()
+	game_over = false
 
-func _connect_hand_signals() -> void:
-	# Find hands and connect to their release signals
-	var hands = get_tree().get_nodes_in_group("xr_hand")
-	for hand in hands:
-		if hand.has_signal("object_released"):
-			if not hand.object_released.is_connected(_on_pump_handle_released):
-				hand.object_released.connect(_on_pump_handle_released)
-		if hand.has_signal("pinch_started"):
-			if not hand.pinch_started.is_connected(_on_pump_handle_grabbed):
-				hand.pinch_started.connect(_on_pump_handle_grabbed)
-	
-	# Also try to find hands by path
-	var xr_origin = get_tree().get_first_node_in_group("xr_origin")
-	if xr_origin:
-		for child_name in ["left", "right"]:
-			var hand = xr_origin.get_node_or_null(child_name)
-			if hand and hand.has_signal("object_released"):
-				if not hand.object_released.is_connected(_on_pump_handle_released):
-					hand.object_released.connect(_on_pump_handle_released)
-			if hand and hand.has_signal("pinch_started"):
-				if not hand.pinch_started.is_connected(_on_pump_handle_grabbed):
-					hand.pinch_started.connect(_on_pump_handle_grabbed)
+	# Reset buckets
+	for bucket in buckets:
+		bucket.reset()
+		bucket.freeze = true
 
-func _on_intro_completed() -> void:
-	if is_active:
-		_start_game()
+	_update_ui()
+
+	# Wait for fade in
+	await get_tree().create_timer(1.5).timeout
+
+	# Play whistle and start intro
+	if whistle_player:
+		whistle_player.play()
+
+	# Sustainabot walks to player
+	if sustainabot and xr_camera:
+		var target_pos = xr_camera.global_position + Vector3(1.5, 0, -1)
+		target_pos.y = 0
+		await sustainabot.sprint_to(target_pos, 2.0)
+		sustainabot.look_at_player(xr_camera.global_position)
+
+	# Show instructions
+	if sustainabot:
+		sustainabot.set_state("instructing")
+		sustainabot.show_speech("Fill the buckets\nwith water!", 3.0)
+
+	if instruction_label:
+		instruction_label.text = "Grab buckets and place under spout\nTouch pump handle to release water"
+
+	await get_tree().create_timer(3.0).timeout
+
+	# Start game
+	_start_game()
 
 func _start_game() -> void:
 	is_game_active = true
-	game_timer.start()
-	
-	# Enable pump handle
-	if pump_handle:
-		pump_handle.freeze = false
-	
-	# Update UI
-	_update_ui()
-	
-	# Sustainabot encouragement
-	if sustainabot:
-		sustainabot.set_state("instructing")
-		sustainabot.show_speech("Go! Fill those buckets!", 2.0)
 
-func _on_timer_tick() -> void:
-	if not is_game_active or is_game_complete:
+	# Unfreeze buckets
+	for bucket in buckets:
+		bucket.freeze = false
+
+	if instruction_label:
+		instruction_label.text = ""
+
+	if sustainabot:
+		sustainabot.set_state("idle")
+		sustainabot.show_speech("Go!", 1.5)
+
+func _process(delta: float) -> void:
+	if not is_game_active or game_over:
 		return
-	
-	time_remaining -= 1.0
-	
+
+	# Update timer
+	time_remaining -= delta
 	if time_remaining <= 0:
 		time_remaining = 0
-		_end_game()
-	
+		_end_game(false)
+		return
+
+	# Update pump cooldown
+	if pump_cooldown > 0:
+		pump_cooldown -= delta
+
+	# Check bucket filling
+	if is_pumping and water_spout:
+		_check_bucket_filling(delta)
+
 	_update_ui()
+
+	# Make sustainabot follow player slightly
+	if sustainabot and xr_camera and is_game_active:
+		sustainabot.look_at_player(xr_camera.global_position)
+
+func _check_bucket_filling(delta: float) -> void:
+	var spout_pos = water_spout.global_position
+
+	for bucket in buckets:
+		if bucket.is_filled:
+			continue
+
+		var bucket_pos = bucket.global_position
+		var horizontal_dist = Vector2(spout_pos.x - bucket_pos.x, spout_pos.z - bucket_pos.z).length()
+
+		# Bucket must be under spout and below it
+		if horizontal_dist < 0.25 and bucket_pos.y < spout_pos.y:
+			bucket.add_water(delta)
+
+func _on_bucket_filled() -> void:
+	buckets_filled += 1
+	_update_ui()
+
+	if sustainabot:
+		sustainabot.set_state("commending")
+		sustainabot.show_speech("Great job!", 2.0)
+
+	# Check win condition (all 4 buckets filled)
+	if buckets_filled >= 4:
+		_end_game(true)
 
 func _update_ui() -> void:
 	if timer_label:
-		var minutes = int(time_remaining) / 60
-		var seconds = int(time_remaining) % 60
-		timer_label.text = "Time: %02d:%02d" % [minutes, seconds]
-	
-	if score_label:
-		score_label.text = "Buckets: %d/%d" % [buckets_filled, total_buckets]
+		var mins = int(time_remaining) / 60
+		var secs = int(time_remaining) % 60
+		timer_label.text = "Time: %d:%02d" % [mins, secs]
 
-func _on_pump_handle_grabbed() -> void:
-	# Check if handle is being grabbed
-	if not pump_handle:
-		return
-	
-	# This will be called when pinch starts, but we need to check if handle is held
-	# The actual grab detection happens in hand.gd
-	pump_handle_held = true
-
-func _on_pump_handle_released(object: RigidBody3D) -> void:
-	if object != pump_handle:
-		return
-	
-	pump_handle_held = false
-	
-	# Check if handle was moved enough to count as a pump cycle
-	_check_pump_cycle()
-
-func _check_pump_cycle() -> void:
-	if not is_game_active:
-		return
-	
-	# Simple check: if handle moved down and back up, count as cycle
-	# For now, we'll use a simpler approach: count releases as cycles
-	pump_cycles += 1
-	
-	# Generate water
-	_generate_water()
-
-func _generate_water() -> void:
-	if not is_game_active:
-		return
-	
-	# Create water particles or simple detection
-	# For simplicity, we'll use a simple area-based system
-	# Water "flows" from pump output to buckets
-	
-	# Check if any bucket is in range and not filled
-	for fill_area in bucket_fill_areas:
-		if fill_area.get_meta("is_filled", false):
-			continue
-		
-		# Simple distance check - if bucket is close enough, fill it
-		var bucket_node = fill_area.get_meta("bucket_node") as Node3D
-		if not bucket_node:
-			continue
-		
-		var pump_output_pos = Vector3.ZERO
-		if water_pump and water_pump.has_node("WaterOutput"):
-			pump_output_pos = water_pump.get_node("WaterOutput").global_position
+		# Color warning
+		if time_remaining <= 10:
+			timer_label.modulate = Color.RED
+		elif time_remaining <= 20:
+			timer_label.modulate = Color.YELLOW
 		else:
-			pump_output_pos = water_pump.global_position if water_pump else Vector3.ZERO
-		
-		var bucket_pos = bucket_node.global_position
-		var distance = pump_output_pos.distance_to(bucket_pos)
-		
-		# If bucket is within 2 meters and in front of pump, fill it
-		if distance < 2.0:
-			_fill_bucket(fill_area, bucket_node)
+			timer_label.modulate = Color.WHITE
 
-func _on_water_entered_bucket(fill_area: Area3D, body: Node3D) -> void:
-	# This is called when a water particle/body enters the bucket area
-	# For now, we'll use the distance-based system in _generate_water()
-	pass
+	if score_label:
+		score_label.text = "Buckets: %d/4" % buckets_filled
 
-func _fill_bucket(fill_area: Area3D, bucket_node: Node3D) -> void:
-	if fill_area.get_meta("is_filled", false):
+func _end_game(won: bool) -> void:
+	if game_over:
 		return
-	
-	# Mark as filled
-	fill_area.set_meta("is_filled", true)
-	buckets_filled += 1
-	
-	# Visual feedback
-	_show_bucket_filled(bucket_node)
-	
-	# Audio feedback (optional)
-	# play_sound("bucket_fill.wav")
-	
+
+	game_over = true
+	is_game_active = false
+	_deactivate_pump()
+
+	# Freeze buckets
+	for bucket in buckets:
+		bucket.freeze = true
+
 	# Sustainabot reaction
 	if sustainabot:
-		sustainabot.set_state("commending")
-		sustainabot.show_speech("Great! Bucket %d filled!" % buckets_filled, 1.5)
-		report_action(true)
-	
-	# Update UI
-	_update_ui()
-	
-	# Check if all buckets filled
-	if buckets_filled >= total_buckets:
-		_end_game()
-
-func _show_bucket_filled(bucket_node: Node3D) -> void:
-	# Show visual indicator that bucket is filled
-	if bucket_node.has_node("FillIndicator"):
-		var indicator = bucket_node.get_node("FillIndicator") as MeshInstance3D
-		indicator.visible = true
-		# Animate water level rising
-		var tween = create_tween()
-		indicator.scale = Vector3(1, 0, 1)
-		indicator.position.y = -0.1
-		tween.tween_property(indicator, "scale", Vector3(1, 1, 1), 0.5)
-		tween.parallel().tween_property(indicator, "position:y", 0.0, 0.5)
-
-func _reset_bucket_visual(bucket_node: Node3D) -> void:
-	if bucket_node.has_node("FillIndicator"):
-		var indicator = bucket_node.get_node("FillIndicator") as MeshInstance3D
-		indicator.visible = false
-		indicator.scale = Vector3(1, 0, 1)
-		indicator.position.y = -0.1
-
-func _end_game() -> void:
-	if is_game_complete:
-		return
-	
-	is_game_complete = true
-	is_game_active = false
-	game_timer.stop()
-	
-	# Freeze pump handle
-	if pump_handle:
-		pump_handle.freeze = true
-	
-	# Show end screen
-	_show_end_screen()
-	
-	# Sustainabot final reaction
-	if sustainabot:
-		var success = buckets_filled >= 2  # At least 2/3 buckets
-		if success:
+		if won or buckets_filled >= 3:
 			sustainabot.set_state("celebrating")
-			sustainabot.show_speech("Excellent work!\nYou filled %d buckets!" % buckets_filled, 3.0)
+			sustainabot.show_speech("Well done!\n%d buckets filled!" % buckets_filled, 4.0)
 		else:
 			sustainabot.set_state("berating")
-			sustainabot.show_speech("Only %d buckets?\nTry harder next time!" % buckets_filled, 3.0)
-	
-	# Wait before completing task
-	await get_tree().create_timer(4.0).timeout
-	
-	# Track analytics
-	Talo.events.track("Goal 1 buckets filled", {
-		"buckets": str(buckets_filled),
-		"total": str(total_buckets),
-		"time_remaining": str(time_remaining)
-	})
-	
-	# Complete task (success if 2+ buckets)
-	complete_task(buckets_filled >= 2)
+			sustainabot.show_speech("Only %d buckets...\nTry harder!" % buckets_filled, 4.0)
 
-func _show_end_screen() -> void:
-	if not end_screen:
-		return
-	
-	end_screen.visible = true
-	
-	if final_score_label:
-		final_score_label.text = "Final Score: %d/%d Buckets" % [buckets_filled, total_buckets]
-	
-	if buckets_filled_label:
-		buckets_filled_label.text = "Buckets Filled: %d" % buckets_filled
-	
-	if message_label:
-		if buckets_filled >= total_buckets:
-			message_label.text = "Perfect! All buckets filled!"
-		elif buckets_filled >= 2:
-			message_label.text = "Great job! Well done!"
+	# Show final message
+	if instruction_label:
+		if won:
+			instruction_label.text = "Perfect! All buckets filled!"
+			instruction_label.modulate = Color.GREEN
+		elif buckets_filled >= 3:
+			instruction_label.text = "Great effort!"
+			instruction_label.modulate = Color.YELLOW
 		else:
-			message_label.text = "Good try! Keep practicing!"
+			instruction_label.text = "Keep practicing!"
+			instruction_label.modulate = Color.RED
 
-func _on_sustainabot_hit(object: Node3D) -> void:
-	if not sustainabot:
-		return
-	
-	var messages: Array[String] = [
-		"Hey! Watch the pump!",
-		"Don't throw things at me!",
-		"The buckets are over there!",
-		"Focus on the task!"
-	]
-	
-	var msg = messages[randi() % messages.size()]
-	sustainabot.show_speech(msg, 2.0)
-	
-	Talo.events.track("Goal 1 object thrown at bot", {"object": object.name})
+	# Track analytics
+	Talo.events.track("Goal 1 completed", {
+		"buckets_filled": str(buckets_filled),
+		"time_remaining": str(int(time_remaining)),
+		"won": str(won)
+	})
 
-func _physics_process(_delta: float) -> void:
-	# Sync pump handle visual if needed
-	# Track handle position for pump cycle detection
-	if pump_handle and pump_handle_held:
-		# Check handle position relative to pump
-		var handle_pos = pump_handle.global_position
-		var pump_pos = water_pump.global_position if water_pump else Vector3.ZERO
-		var relative_y = handle_pos.y - pump_pos.y
-		
-		# If handle moved down significantly, it's a pump cycle
-		# This is a simplified check - you may want to improve this
+	await get_tree().create_timer(4.0).timeout
+
+	# Complete task (success if 3+ buckets)
+	complete_task(buckets_filled >= 3)
 
 func end_scene() -> void:
 	is_game_active = false
-	is_game_complete = false
-	if game_timer:
-		game_timer.stop()
-	if end_screen:
-		end_screen.visible = false
+	game_over = false
+	_deactivate_pump()
 	super.end_scene()

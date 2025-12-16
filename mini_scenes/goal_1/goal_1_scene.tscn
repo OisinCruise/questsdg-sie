@@ -1,184 +1,83 @@
-[gd_scene load_steps=18 format=3 uid="uid://64eimgok3bhk"]
+[gd_scene load_steps=9 format=3 uid="uid://64eimgok3bhk"]
 
-[ext_resource type="Script" uid="uid://clb5jvs3d683o" path="res://mini_scenes/goal_1/goal_1_scene.gd" id="1_44fei"]
-[ext_resource type="Script" uid="uid://q8iyfio56ilg" path="res://questsdg/intro_sequence.gd" id="1_tkf78"]
-[ext_resource type="AudioStream" uid="uid://cy78ftcl5bwxt" path="res://sounds/PowerUp10.wav" id="2_44fei"]
-[ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="3_y4f6b"]
-[ext_resource type="AudioStream" uid="uid://cxstxe6abanfh" path="res://sounds/swish-sound-94707.mp3" id="4_7lgeb"]
-[ext_resource type="PackedScene" uid="uid://bxx274a0hhpq1" path="res://mini_scenes/goal_1/assets/simple_low_poly_water_pump/water_pump.tscn" id="6_y4f6b"]
-[ext_resource type="PackedScene" uid="uid://tfqxs5814a5b" path="res://mini_scenes/goal_1/assets/low_poly_bucket/bucket.tscn" id="7_7lgeb"]
-[ext_resource type="Script" uid="uid://b7qga5e0nc2c3" path="res://mini_scenes/goal_1/pump_handle.gd" id="7_16gpq"]
+[ext_resource type="Script" uid="uid://clb5jvs3d683o" path="res://mini_scenes/goal_1/goal_1_scene.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="2_sustainabot"]
+[ext_resource type="PackedScene" uid="uid://bxx274a0hhpq1" path="res://mini_scenes/goal_1/assets/simple_low_poly_water_pump/water_pump.tscn" id="3_pump"]
+[ext_resource type="PackedScene" path="res://mini_scenes/goal_1/bucket.tscn" id="4_bucket"]
+[ext_resource type="AudioStream" uid="uid://cy78ftcl5bwxt" path="res://sounds/PowerUp10.wav" id="5_whistle"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_16gpq"]
-albedo_color = Color(1.5642495e-07, 0.27883393, 0.18094188, 1)
+[sub_resource type="BoxShape3D" id="BoxShape3D_handle"]
+size = Vector3(0.15, 0.04, 0.04)
 
-[sub_resource type="BoxMesh" id="BoxMesh_ng6ya"]
-material = SubResource("StandardMaterial3D_16gpq")
-size = Vector3(0.05, 0.05, 0.2)
+[sub_resource type="BoxMesh" id="BoxMesh_handle"]
+size = Vector3(0.15, 0.04, 0.04)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_16gpq"]
-size = Vector3(0.19421387, 0.056152344, 0.060546875)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_ng6ya"]
-size = Vector3(0.21130371, 0.05859375, 0.090148926)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vbu86"]
-albedo_color = Color(5.655363e-07, 0.32753623, 0.17511383, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_16gpq"]
-material = SubResource("StandardMaterial3D_vbu86")
-radius = 0.025
-height = 0.05
-
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_16gpq"]
-height = 0.16998364
-radius = 0.07861328
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ng6ya"]
-transparency = 1
-albedo_color = Color(0.03529412, 0.3019608, 0.7882353, 0.50980395)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_vbu86"]
-material = SubResource("StandardMaterial3D_ng6ya")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_handle"]
+albedo_color = Color(0.3, 0.3, 0.3, 1)
+metallic = 0.5
+roughness = 0.3
 
 [node name="Goal1Scene" type="Node3D"]
-script = ExtResource("1_44fei")
+script = ExtResource("1_script")
 
-[node name="IntroSequence" type="Node3D" parent="."]
-script = ExtResource("1_tkf78")
-whistle_sound = ExtResource("2_44fei")
+[node name="Sustainabot" parent="." instance=ExtResource("2_sustainabot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -2)
 
-[node name="WhistleAudio" type="AudioStreamPlayer3D" parent="IntroSequence"]
-stream = ExtResource("2_44fei")
-max_distance = 10.0
+[node name="WaterPump" parent="." instance=ExtResource("3_pump")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.8)
 
-[node name="Sustainabot" parent="." instance=ExtResource("3_y4f6b")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.3, 0.2575965, -1.1039106)
-gibberish_sounds = Array[AudioStream]([ExtResource("4_7lgeb")])
+[node name="PumpHandle" type="Area3D" parent="WaterPump"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0.45, 0)
+collision_layer = 0
 
-[node name="SpawnPoint" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.5)
-
-[node name="WaterPump" type="Node3D" parent="."]
-
-[node name="PumpModel" parent="WaterPump" instance=ExtResource("6_y4f6b")]
-
-[node name="PumpHandle" type="RigidBody3D" parent="WaterPump"]
-collision_layer = 2
-script = ExtResource("7_16gpq")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WaterPump/PumpHandle"]
+shape = SubResource("BoxShape3D_handle")
 
 [node name="HandleMesh" type="MeshInstance3D" parent="WaterPump/PumpHandle"]
-transform = Transform3D(0.0077666016, 0, 0.99996984, 0, 1, 0, -0.99996984, 0, 0.0077666016, 0.14155519, 0.48579502, -0.005184442)
-mesh = SubResource("BoxMesh_ng6ya")
+mesh = SubResource("BoxMesh_handle")
+surface_material_override/0 = SubResource("StandardMaterial3D_handle")
 
-[node name="HandleCollision" type="CollisionShape3D" parent="WaterPump/PumpHandle"]
-transform = Transform3D(0.9997462, 0, -0.022530273, 0, 1, 0, 0.022530273, 0, 0.9997462, 0.16327257, 0.47192383, 0.006356164)
-shape = SubResource("BoxShape3D_16gpq")
-
-[node name="HandDetectArea" type="Area3D" parent="WaterPump/PumpHandle"]
-
-[node name="DetectShape" type="CollisionShape3D" parent="WaterPump/PumpHandle/HandDetectArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14477307, 0.48323452, 0.0006875396)
-shape = SubResource("BoxShape3D_ng6ya")
-
-[node name="WaterOutput" type="Node3D" parent="WaterPump"]
-
-[node name="OutputMarker" type="MeshInstance3D" parent="WaterPump/WaterOutput"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00019332021, 0.36892414, -0.3150366)
-mesh = SubResource("SphereMesh_16gpq")
+[node name="WaterSpout" type="Node3D" parent="WaterPump"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, -0.25)
 
 [node name="Buckets" type="Node3D" parent="."]
 
-[node name="Bucket1" type="Node3D" parent="Buckets"]
+[node name="Bucket1" parent="Buckets" instance=ExtResource("4_bucket")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.1, 0.3)
 
-[node name="BucketMesh" parent="Buckets/Bucket1" instance=ExtResource("7_7lgeb")]
-transform = Transform3D(15, 0, 0, 0, 15, 0, 0, 0, 15, -0.43302998, -0.06898713, -0.6651901)
+[node name="Bucket2" parent="Buckets" instance=ExtResource("4_bucket")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.1, 0.3)
 
-[node name="FillArea" type="Area3D" parent="Buckets/Bucket1"]
+[node name="Bucket3" parent="Buckets" instance=ExtResource("4_bucket")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.1, 0.6)
 
-[node name="FillShape" type="CollisionShape3D" parent="Buckets/Bucket1/FillArea"]
-transform = Transform3D(0.6861993, 0, 0.72741354, 0, 1, 0, -0.72741354, 0, 0.6861993, 0.032036483, 0.09131199, -0.3272655)
-shape = SubResource("CylinderShape3D_16gpq")
+[node name="Bucket4" parent="Buckets" instance=ExtResource("4_bucket")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.1, 0.6)
 
-[node name="FillIndicator" type="MeshInstance3D" parent="Buckets/Bucket1"]
-transform = Transform3D(0.15, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.02, 0.02, -0.33)
-mesh = SubResource("CylinderMesh_vbu86")
+[node name="UI" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -1.2)
 
-[node name="Bucket2" type="Node3D" parent="Buckets"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3333152, 0, 0.5760937)
+[node name="TimerLabel" type="Label3D" parent="UI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+billboard = 1
+text = "Time: 0:30"
+font_size = 64
+outline_size = 8
 
-[node name="BucketMesh" parent="Buckets/Bucket2" instance=ExtResource("7_7lgeb")]
-transform = Transform3D(15, 0, 0, 0, 15, 0, 0, 0, 15, -0.43302998, -0.06898713, -0.6651901)
+[node name="ScoreLabel" type="Label3D" parent="UI"]
+billboard = 1
+modulate = Color(0, 1, 1, 1)
+text = "Buckets: 0/4"
+font_size = 48
+outline_size = 6
 
-[node name="FillArea" type="Area3D" parent="Buckets/Bucket2"]
+[node name="InstructionLabel" type="Label3D" parent="UI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+billboard = 1
+modulate = Color(1, 1, 0.8, 1)
+font_size = 36
+outline_size = 4
 
-[node name="FillShape" type="CollisionShape3D" parent="Buckets/Bucket2/FillArea"]
-transform = Transform3D(0.6861993, 0, 0.72741354, 0, 1, 0, -0.72741354, 0, 0.6861993, 0.032036483, 0.09131199, -0.3272655)
-shape = SubResource("CylinderShape3D_16gpq")
-
-[node name="FillIndicator" type="MeshInstance3D" parent="Buckets/Bucket2"]
-transform = Transform3D(0.15, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.02, 0.02, -0.33)
-mesh = SubResource("CylinderMesh_vbu86")
-
-[node name="Bucket3" type="Node3D" parent="Buckets"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15519625, 0, 0.7808022)
-
-[node name="BucketMesh" parent="Buckets/Bucket3" instance=ExtResource("7_7lgeb")]
-transform = Transform3D(15, 0, 0, 0, 15, 0, 0, 0, 15, -0.43302998, -0.06898713, -0.6651901)
-
-[node name="FillArea" type="Area3D" parent="Buckets/Bucket3"]
-
-[node name="FillShape" type="CollisionShape3D" parent="Buckets/Bucket3/FillArea"]
-transform = Transform3D(0.6861993, 0, 0.72741354, 0, 1, 0, -0.72741354, 0, 0.6861993, 0.032036483, 0.09131199, -0.3272655)
-shape = SubResource("CylinderShape3D_16gpq")
-
-[node name="FillIndicator" type="MeshInstance3D" parent="Buckets/Bucket3"]
-transform = Transform3D(0.15, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.02, 0.02, -0.33)
-mesh = SubResource("CylinderMesh_vbu86")
-
-[node name="Bucket4" type="Node3D" parent="Buckets"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.41868138, 0, 0.8161643)
-
-[node name="BucketMesh" parent="Buckets/Bucket4" instance=ExtResource("7_7lgeb")]
-transform = Transform3D(15, 0, 0, 0, 15, 0, 0, 0, 15, -0.43302998, -0.06898713, -0.6651901)
-
-[node name="FillArea" type="Area3D" parent="Buckets/Bucket4"]
-
-[node name="FillShape" type="CollisionShape3D" parent="Buckets/Bucket4/FillArea"]
-transform = Transform3D(0.6861993, 0, 0.72741354, 0, 1, 0, -0.72741354, 0, 0.6861993, 0.032036483, 0.09131199, -0.3272655)
-shape = SubResource("CylinderShape3D_16gpq")
-
-[node name="FillIndicator" type="MeshInstance3D" parent="Buckets/Bucket4"]
-transform = Transform3D(0.15, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.02, 0.02, -0.33)
-mesh = SubResource("CylinderMesh_vbu86")
-
-[node name="UI" type="CanvasLayer" parent="."]
-
-[node name="TimerLabel" type="Label" parent="UI"]
-offset_right = 40.0
-offset_bottom = 16.0
-
-[node name="ScoreLabel" type="Label" parent="UI"]
-offset_right = 40.0
-offset_bottom = 16.0
-
-[node name="EndScreen" type="Panel" parent="UI"]
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="FinalScoreLabel" type="Label" parent="UI/EndScreen"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 16.0
-
-[node name="BucketsFilledLabel" type="Label" parent="UI/EndScreen"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 16.0
-
-[node name="MessageLabel" type="Label" parent="UI/EndScreen"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 16.0
-
-[node name="GameTimer" type="Timer" parent="."]
+[node name="WhistlePlayer" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("5_whistle")
+max_distance = 10.0
