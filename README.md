@@ -1,59 +1,39 @@
-# Quest: SDG
+# Project Title
 
-An immersive experience where you can learn about the UN SDG's and TU Dublin projects that support the SDG's. 
+Name:
 
-- Created in Godot
-- Runs on Quest 3 and Quest 3S
+Student Number: 
+
+Class Group:
+
+Video:
+
+[![YouTube](http://img.youtube.com/vi/J2kHSSFA4NU/0.jpg)](https://www.youtube.com/watch?v=J2kHSSFA4NU)
+
+# Description of the project
+
+# Instructions for use
 
 
-![Quest: SDG](screenshots/2025_08_14T16_02_57_000Z.jpg)
+# How it works
 
-![Quest: SDG](screenshots/2025_08_14T16_07_20_000Z1.jpg)
+# List of classes/assets in the project
 
-![Quest: SDG](screenshots/2025_08_14T16_05_13_000Z.jpg)
+| Class/asset | Source |
+|-----------|-----------|
+| MyClass.cs | Self written |
+| MyClass1.cs | Modified from [reference]() |
+| MyClass2.cs | From [reference]() |
 
-![Quest: SDG](screenshots/2025_08_14T16_07_20_000Z.jpg)
+# References
+* Item 1
+* Item 2
 
-![Quest: SDG](screenshots/2025_08_14T16_20_49_000Z.jpg)
+# What I am most proud of in the assignment
 
-![Quest: SDG](screenshots/IMG_0934.jpg)
+# What I learned
 
-1. No Poverty 
-2. Zero Hunger 
-3. Good Health and Well-Being 
-4. Quality Education 
-5. Gender Equality 
-6. Clean Water and Sanitation 
-7. Affordable and Clean Energy 
-8. Decent Work and Economic Growth 
-9. Industry, Innovation and Infrastructure 
-10. Reduced Inequalities 
-11. Sustainable Cities and Communities 
-12. Responsible Consumption and Production 
-13. Climate Action 
-14. Life Below Water 
-15. Life on Land 
-16. Peace, Justice and Strong Institutions 
-17. Patrnerships for the Goals
-
-## Created By:
-
-### Faculty of Digital and Data
-
-- Dr Bryan Duggan
-- Darren Fitzpatrick
-- Garrett Recker
-- Mateo Alves
-
-### TU Dublin Sustainability Office
-
-- Dr Brian Gormley
-- Olivia Freeman
-- Paul Duffy
-- Lucia Walsh
-- Kenneth Boyle
-
----
+# Initial Proposal:
 
 # Quest:SDG Extended - Sustainabot Interactive Experiences
 
@@ -64,7 +44,7 @@ An immersive experience where you can learn about the UN SDG's and TU Dublin pro
 
 ## Project Idea
 
-This project extends the existing Quest:SDG experience by creating 17 unique interactive mini-scenes, one for each UN Sustainable Development Goal. When users interact with any of the 17 SDG blocks in the current Quest:SDG environment, they will be surrounded by an immersive scene featuring 'Sustainabot', a comical "Sustainability Warden" character.
+This project extends the existing Quest:SDG experience by creating unique interactive mini-scenes for the UN Sustainable Development Goals, specificaly Goals 1, 2, 3, and 12. When users interact with relevant SDG blocks in the current Quest:SDG environment, they will be surrounded by an immersive scene featuring 'Sustainabot', a comical "Sustainability Warden" character.
 
 ### Core Mechanics
 - **Block Interaction**: Users trigger scenes by specific hand gesture or button to activate the mini-scene of each SDG block
@@ -95,7 +75,7 @@ This project extends the existing Quest:SDG experience by creating 17 unique int
 ## Technical Implementation
 
 ### Scene Management
-- Use Godot's scene/subscene system to manage 17 independent mini-scenes
+- Use Godot's scene/subscene system to manage independent mini-scenes
 - Implement scene transitions triggered by specific block interactions
 
 ### Character System
@@ -118,7 +98,7 @@ This project extends the existing Quest:SDG experience by creating 17 unique int
 
 - Build upon the existing OpenXR/Hand Tracking framework and just hook into existing scene transitions
 
-- Extend the Scene Management System, creating 17 new subscenes for Sustainabot interactions that follow the same node composition patterns
+- Extend the Scene Management System, creating new subscenes for Sustainabot interactions that follow the same node composition patterns
 
 - Use Godot's AnimationPlayer node for Sustainabot character animations and state transitions
 
