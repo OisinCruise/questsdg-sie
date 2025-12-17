@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bu0xr6iexq7lx"
-path="res://.godot/imported/sustainabot_new.gltf-61216a0a05be5f81136146d3beeb8d0b.scn"
+uid="uid://c10r8yo7yhhni"
+path="res://.godot/imported/cac-1765822402821.gltf-b16e616a37020efcb451515f17e1825b.scn"
 
 [deps]
 
-source_file="res://sustainabot_new.gltf"
-dest_files=["res://.godot/imported/sustainabot_new.gltf-61216a0a05be5f81136146d3beeb8d0b.scn"]
+source_file="res://mini_scenes/shared/sustainabot/cac-1765822402821.gltf"
+dest_files=["res://.godot/imported/cac-1765822402821.gltf-b16e616a37020efcb451515f17e1825b.scn"]
 
 [params]
 
@@ -17,7 +17,7 @@ nodes/root_type=""
 nodes/root_name=""
 nodes/root_script=null
 nodes/apply_root_scale=true
-nodes/root_scale=0.01
+nodes/root_scale=1.0
 nodes/import_as_skeleton_bones=false
 nodes/use_name_suffixes=true
 nodes/use_node_type_suffixes=true

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cjsnqon4ps6ac"]
 
 [ext_resource type="Script" uid="uid://bhobh6of1a15k" path="res://questsdg/sustainabot.gd" id="1_sustainabot"]
-[ext_resource type="PackedScene" uid="uid://c10r8yo7yhhni" path="res://cac-1765822402821.gltf" id="2_model"]
+[ext_resource type="PackedScene" uid="uid://c10r8yo7yhhni" path="res://mini_scenes/shared/sustainabot/cac-1765822402821.gltf" id="2_model"]
 
 [node name="Sustainabot" type="Node3D"]
 script = ExtResource("1_sustainabot")
