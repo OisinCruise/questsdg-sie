@@ -52,9 +52,10 @@ The project employs a hierarchical scene management system built on Godot's node
 
 ### Mini-Scene Implementations
 
+#### Goal 1 - Water Pump (No Poverty)
+
 ![Goal 1 Scene](mini_scenes/rm_images/goal_1.png)
 
-#### Goal 1 - Water Pump (No Poverty)
 - **Physics System**: HingeJoint3D constrains pump handle rotation with angular limits
   ```gdscript
   func _setup_hinge_constraint() -> void:
@@ -82,9 +83,10 @@ The project employs a hierarchical scene management system built on Godot's node
           _end_game(true)
   ```
 
+#### Goal 2 - Food Sorting (Zero Hunger)
+
 ![Goal 2 Scene](mini_scenes/rm_images/goal_2.png)
 
-#### Goal 2 - Food Sorting (Zero Hunger)
 - **Conveyor System**: Animated belt spawns randomised food items from two scene pools (good/bad food)
   ```gdscript
   func _spawn_food_item() -> void:
@@ -110,9 +112,10 @@ The project employs a hierarchical scene management system built on Godot's node
           _animate_button_press()
   ```
 
+#### Goal 3 - Hand Washing (Good Health)
+
 ![Goal 3 Scene](mini_scenes/rm_images/goal_3.png)
 
-#### Goal 3 - Hand Washing (Good Health)
 - **Multi-State System**: Tracks progress through soap application and water rinsing phases
   ```gdscript
   enum GameState { INTRO, WAITING_FOR_TAP, WASHING, COMPLETE, FAILED }
@@ -141,9 +144,10 @@ The project employs a hierarchical scene management system built on Godot's node
       fill.position.x = -0.24 + (0.24 * clamped)
   ```
 
+#### Goal 12 - Waste Sorting (Responsible Consumption)
+
 ![Goal 12 Scene](mini_scenes/rm_images/goal_4.png)
 
-#### Goal 12 - Waste Sorting (Responsible Consumption)
 - **Object Classification**: WasteItem class with enum-based type system (recyclable/waste)
   ```gdscript
   enum WasteType { RECYCLABLE, WASTE }
