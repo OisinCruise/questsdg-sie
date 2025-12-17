@@ -10,6 +10,8 @@ var xr_origin: XROrigin3D = null
 var is_transitioning: bool = false
 var maps_node: Node3D = null
 var maps_fade_tween: Tween = null
+var last_opened_scene: int = -1
+var scene_switch_cooldown: float = 0.0
 
 func _ready() -> void:
 	xr_origin = get_tree().get_first_node_in_group("xr_origin")
@@ -24,9 +26,26 @@ func _ready() -> void:
 	if not maps_node:
 		maps_node = get_tree().root.get_node_or_null("cubes_scene_earlier/tu dub/maps")
 
+func _process(delta: float) -> void:
+	# Count down the scene switch cooldown
+	if scene_switch_cooldown > 0:
+		scene_switch_cooldown -= delta
+
 func open_mini_scene(goal_number: int) -> void:
 	# If already transitioning, ignore (prevents race conditions)
 	if is_transitioning:
+		print("MiniSceneManager: Already transitioning, ignoring request for scene %d" % goal_number)
+		return
+
+	# Check cooldown to prevent rapid re-triggering
+	if scene_switch_cooldown > 0:
+		print("MiniSceneManager: Cooldown active (%.2fs remaining), ignoring request for scene %d" % [scene_switch_cooldown, goal_number])
+		return
+
+	# If trying to open the same scene that was just opened/interrupted, ignore
+	if last_opened_scene == goal_number and scene_switch_cooldown == 0:
+		print("MiniSceneManager: Ignoring duplicate request for scene %d" % goal_number)
+		scene_switch_cooldown = 2.0  # Set longer cooldown to prevent spam
 		return
 
 	# If a scene is currently active, close it first
@@ -34,6 +53,8 @@ func open_mini_scene(goal_number: int) -> void:
 		_interrupt_current_scene()
 
 	is_transitioning = true
+	last_opened_scene = goal_number
+	scene_switch_cooldown = 1.5  # Cooldown to prevent immediate re-triggering
 
 	var scene_path = "res://mini_scenes/goal_%d/goal_%d_scene.tscn" % [goal_number, goal_number]
 
@@ -77,6 +98,10 @@ func close_current_scene(success: bool = true) -> void:
 
 	current_mini_scene.queue_free()
 	current_mini_scene = null
+
+	# Reset last opened scene after a proper close (not an interrupt)
+	last_opened_scene = -1
+	scene_switch_cooldown = 0.5  # Small cooldown after close
 
 	# Fade maps back in after mini-scene closes
 	_fade_in_maps()

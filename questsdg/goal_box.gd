@@ -88,8 +88,11 @@ func _process(delta: float) -> void:
 		elif hand.pinching and not pinch_triggered:
 			pinch_triggered = true
 			emit_signal("mini_scene_requested", goal)
-			# Reset after a delay to allow re-triggering
-			await get_tree().create_timer(1.0).timeout
+			# Immediately reset state to prevent re-triggering during scene load
+			inside = false
+			hand = null
+			# Reset pinch flag after a longer delay
+			await get_tree().create_timer(2.0).timeout
 			pinch_triggered = false
 
 var hand
@@ -122,6 +125,11 @@ func play_sound():
 func deactivate():
 	visible = false
 	$".".monitoring = false
+
+func reset_pinch_state() -> void:
+	pinch_triggered = false
+	inside = false
+	hand = null
 
 func _on_area_exited(area: Area3D) -> void:
 	if fade_out_tween:

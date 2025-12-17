@@ -89,6 +89,8 @@ func _process(delta: float) -> void:
 func _trigger_mini_scene() -> void:
 	can_trigger_mini_scene = false
 	emit_signal("mini_scene_requested", goal_num1)
+	# Immediately clear hand state to prevent re-triggering during scene load
+	hand_inside = null
 
 func _on_area_3d_area_entered(area: Area3D) -> void:
 	if area.name.contains("hand"):

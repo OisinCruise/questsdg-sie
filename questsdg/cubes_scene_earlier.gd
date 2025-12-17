@@ -49,10 +49,17 @@ func _on_mini_scene_requested(goal_number: int) -> void:
 		mini_scene_manager.open_mini_scene(goal_number)
 
 func _on_mini_scene_closed(goal_number: int) -> void:
+	# Reset animated goal boxes
 	var ani_goals = get_node_or_null("tu dub/ani_goals")
 	if ani_goals:
 		for child in ani_goals.get_children():
 			if child.has_method("reset_mini_scene_trigger"):
-				if child.goal_num1 == goal_number:
-					child.reset_mini_scene_trigger()
+				child.reset_mini_scene_trigger()
+	
+	# Reset static goal boxes (reset all to be safe)
+	var goals = get_node_or_null("tu dub/goals")
+	if goals:
+		for child in goals.get_children():
+			if child.has_method("reset_pinch_state"):
+				child.reset_pinch_state()
 	
