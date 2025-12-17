@@ -1,24 +1,20 @@
 extends MiniScene
+## What: Food sorting conveyor belt game - sort edible/waste
+## Who: MiniScene parent, XROrigin for camera tracking
+## Why: Goal 2 zero hunger - reduce food waste through sorting
 
-# Game state
 var items_sorted: int = 0
 var items_correct: int = 0
 const TOTAL_ITEMS: int = 10
-const CONTAINER_RADIUS: float = 0.4  # Detection radius for continuous check
+const CONTAINER_RADIUS: float = 0.4
 
-# Container positions (cached for continuous checking)
-var crate_center: Vector3 = Vector3.ZERO
-var bin_center: Vector3 = Vector3.ZERO
-
-# Food tracking
+var crate_center: Vector3 = Vector3.ZERO  # edible target
+var bin_center: Vector3 = Vector3.ZERO    # waste target
 var food_items: Array[RigidBody3D] = []
 var current_food_item: RigidBody3D = null
-
-# Conveyor state
 var conveyor_active: bool = false
 var belt_speed: float = 0.8
 
-# References
 var spawn_point: Marker3D = null
 var button_area: Area3D = null
 var score_label: Label3D = null
@@ -28,19 +24,13 @@ var start_stop_button: MeshInstance3D = null
 var crate_node: Node3D = null
 var bin_node: Node3D = null
 var barrier_area: Area3D = null
-
-# XR references
 var xr_origin: XROrigin3D = null
 var xr_camera: XRCamera3D = null
-
-# Button cooldown
 var _button_cooldown: float = 0.0
 
-# Food scenes
 var good_food_scene: PackedScene = null
 var bad_food_scene: PackedScene = null
 
-# Food model names
 const FOOD_MODELS: Array[String] = [
 	"F_Latin_Corn_LOD0",
 	"F_Latin_Taco_Classic_LOD0",
@@ -60,15 +50,11 @@ const GLTF_PATH_PREFIX = "Sketchfab_model/30791303cda94400ad9929f2e1788be4_fbx/R
 
 func setup_scene() -> void:
 	goal_number = 2
-	print("Goal 2: setup_scene() starting...")
-
 	_get_references()
 	_preload_food_scenes()
 	_setup_button_detection()
 	_setup_barrier_detection()
 	_hide_display_foods()
-
-	print("Goal 2: setup_scene() complete")
 
 func _get_references() -> void:
 	if has_node("FoodSpawnPoint"):
@@ -115,48 +101,39 @@ func _cache_container_positions() -> void:
 		crate_center = crate_node.global_position
 	if bin_node:
 		bin_center = bin_node.global_position
-	print("Goal 2: Container positions cached - Crate: %s, Bin: %s" % [crate_center, bin_center])
 
 func _setup_button_detection() -> void:
 	if button_area:
 		button_area.area_entered.connect(_on_button_area_entered)
 		button_area.body_entered.connect(_on_button_body_entered)
-		print("Goal 2: Button detection connected")
 
 func _setup_barrier_detection() -> void:
 	if barrier_area:
 		barrier_area.body_entered.connect(_on_barrier_body_entered)
-		print("Goal 2: Barrier detection connected")
 
 func _on_barrier_body_entered(body: Node3D) -> void:
 	if body is RigidBody3D and body.is_in_group("food_item"):
-		# Stop the food item's velocity when it hits the barrier
 		body.linear_velocity = Vector3.ZERO
 		body.angular_velocity = Vector3.ZERO
-		print("Goal 2: Food hit barrier, velocity stopped")
 
 func start_scene() -> void:
 	super.start_scene()
-
-	# Set Sustainabot skin color to Goal 2 yellow (Zero Hunger)
+	
 	if sustainabot:
-		sustainabot.set_skin_color(Color("#DDA63A"))
-
+		sustainabot.set_skin_color(Color("#DDA63A"))  # Goal 2 yellow
+	
 	items_sorted = 0
 	items_correct = 0
 	conveyor_active = false
-
 	_update_ui()
-
+	
 	await get_tree().create_timer(1.6).timeout
-
-	_cache_container_positions()  # Cache container positions for continuous detection
+	
+	_cache_container_positions()
 	_connect_hand_signals()
-
+	
 	if progress_label:
 		progress_label.text = "Touch the red button to start!"
-
-	print("Goal 2: Scene started, ready for gameplay")
 
 func _connect_hand_signals() -> void:
 	var hands = get_tree().get_nodes_in_group("xr_hand")
@@ -175,17 +152,14 @@ func _connect_hand_signals() -> void:
 func _is_hand_node(node: Node) -> bool:
 	if not node:
 		return false
-	# Check node name
 	var name_lower = node.name.to_lower()
 	if "hand" in name_lower or "left" in name_lower or "right" in name_lower:
 		return true
-	# Check parent name
 	var parent = node.get_parent()
 	if parent:
 		var parent_name = parent.name.to_lower()
 		if "hand" in parent_name or "left" in parent_name or "right" in parent_name:
 			return true
-	# Check if in xr_hand group
 	if node.is_in_group("xr_hand"):
 		return true
 	return false
@@ -193,11 +167,8 @@ func _is_hand_node(node: Node) -> bool:
 func _on_button_area_entered(area: Area3D) -> void:
 	if _button_cooldown > 0:
 		return
-
-	var is_hand = _is_hand_node(area)
-	print("Goal 2: Button area entered by: %s (is_hand=%s)" % [area.name, is_hand])
-
-	if is_hand:
+	
+	if _is_hand_node(area):
 		_toggle_conveyor()
 		_button_cooldown = 1.0
 		_animate_button_press()
@@ -205,11 +176,8 @@ func _on_button_area_entered(area: Area3D) -> void:
 func _on_button_body_entered(body: Node3D) -> void:
 	if _button_cooldown > 0:
 		return
-
-	var is_hand = _is_hand_node(body)
-	print("Goal 2: Button body entered by: %s (is_hand=%s)" % [body.name, is_hand])
-
-	if is_hand:
+	
+	if _is_hand_node(body):
 		_toggle_conveyor()
 		_button_cooldown = 1.0
 		_animate_button_press()
