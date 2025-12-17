@@ -1,6 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://ckqi4lc8tcth8"]
-
-[ext_resource type="Script" uid="uid://ctise8yu3tvgv" path="res://mini_scenes/goal_1/bucket.gd" id="1_bucket"]
+[gd_scene load_steps=4 format=3 uid="uid://ckqi4lc8tcth8"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_col"]
 height = 0.2
@@ -21,7 +19,6 @@ roughness = 0.8
 [node name="FoodBin" type="StaticBody3D"]
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("1_bucket")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)

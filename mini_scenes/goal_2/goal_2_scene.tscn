@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cohbpau5hhc6"]
+[gd_scene load_steps=15 format=3 uid="uid://cohbpau5hhc6"]
 
 [ext_resource type="Script" uid="uid://dfi8pw7es8ie0" path="res://mini_scenes/goal_2/goal_2_scene.gd" id="1_kjpmt"]
 [ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="2_oopbg"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://7xu1c3up6m1e" path="res://mini_scenes/goal_2/assets/simple_old_metal_table/table.tscn" id="7_5b14s"]
 [ext_resource type="PackedScene" uid="uid://brkbli3ic724x" path="res://mini_scenes/goal_2/assets/wood_crate/crate.tscn" id="8_w7u7o"]
 [ext_resource type="PackedScene" uid="uid://ckqi4lc8tcth8" path="res://mini_scenes/goal_2/assets/Bin/food_bin.tscn" id="9_qum13"]
+[ext_resource type="Script" uid="uid://q8iyfio56ilg" path="res://questsdg/intro_sequence.gd" id="10_intro"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qum13"]
 albedo_color = Color(0.5889683, 0, 0.10181465, 1)
@@ -19,7 +20,11 @@ material = SubResource("StandardMaterial3D_qum13")
 [sub_resource type="SphereShape3D" id="SphereShape3D_w8n0k"]
 radius = 0.6
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_button"]
+radius = 0.08
+
 [node name="Goal2Scene" type="Node3D"]
+transform = Transform3D(0.575, 0, 0, 0, 0.575, 0, 0, 0, 0.575, 0, 0, 0)
 script = ExtResource("1_kjpmt")
 
 [node name="Sustainabot" parent="." instance=ExtResource("2_oopbg")]
@@ -41,6 +46,12 @@ mesh = SubResource("SphereMesh_xgjtq")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="ConveyorBelt/StartStopButton/StaticBody3D"]
 transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0)
 shape = SubResource("SphereShape3D_w8n0k")
+
+[node name="ButtonArea" type="Area3D" parent="ConveyorBelt/StartStopButton"]
+collision_layer = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ConveyorBelt/StartStopButton/ButtonArea"]
+shape = SubResource("SphereShape3D_button")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="ConveyorBelt"]
 
@@ -67,3 +78,40 @@ transform = Transform3D(0.13944553, 0, 0.14336996, 0, 0.2, 0, -0.14336996, 0, 0.
 
 [node name="FoodBin" parent="Sorting" instance=ExtResource("9_qum13")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1372769, 0.30897784, -2.8851354)
+
+[node name="IntroSequence" type="Node3D" parent="."]
+script = ExtResource("10_intro")
+start_distance = 3.0
+sprint_duration = 2.5
+instruction_text = "Sort the food!
+Good food -> Wooden Crate
+Spoiled (purple) -> Red Bin"
+whistle_sound = ExtResource("3_sdae8")
+
+[node name="FoodSpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.07730305)
+
+[node name="UI" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, -2.5)
+
+[node name="ScoreLabel" type="Label3D" parent="UI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+billboard = 1
+text = "Score: 0/10"
+font_size = 48
+outline_size = 8
+
+[node name="ProgressLabel" type="Label3D" parent="UI"]
+billboard = 1
+modulate = Color(1, 1, 0.8, 1)
+text = "Touch the red button to start!"
+font_size = 36
+outline_size = 6
+
+[node name="InstructionLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, -1.8)
+billboard = 1
+modulate = Color(0.9, 1, 0.9, 1)
+text = "Good Food -> Crate | Purple Food -> Bin"
+font_size = 42
+outline_size = 6

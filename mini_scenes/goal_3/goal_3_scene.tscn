@@ -1,0 +1,23 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7y5s12p4l6lp"]
+
+[ext_resource type="Script" uid="uid://b8vvbijdrqw6w" path="res://mini_scenes/goal_12/goal_12_scene.gd" id="1_nbkmv"]
+[ext_resource type="Script" uid="uid://q8iyfio56ilg" path="res://questsdg/intro_sequence.gd" id="2_4lq6r"]
+[ext_resource type="AudioStream" uid="uid://cy78ftcl5bwxt" path="res://sounds/PowerUp10.wav" id="3_jwwln"]
+[ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="4_75hr3"]
+[ext_resource type="AudioStream" uid="uid://cxstxe6abanfh" path="res://sounds/swish-sound-94707.mp3" id="5_t1mji"]
+
+[node name="Goal3Scene" type="Node3D"]
+script = ExtResource("1_nbkmv")
+goal_number = 12
+
+[node name="IntroSequence" type="Node3D" parent="."]
+script = ExtResource("2_4lq6r")
+whistle_sound = ExtResource("3_jwwln")
+
+[node name="WhistleAudio" type="AudioStreamPlayer3D" parent="IntroSequence"]
+stream = ExtResource("3_jwwln")
+max_distance = 10.0
+
+[node name="Sustainabot" parent="." instance=ExtResource("4_75hr3")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.3, 0.2575965, -1.1039106)
+gibberish_sounds = Array[AudioStream]([ExtResource("5_t1mji")])
