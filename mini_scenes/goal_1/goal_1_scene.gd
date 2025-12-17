@@ -120,6 +120,10 @@ func _deactivate_pump() -> void:
 func start_scene() -> void:
 	super.start_scene()
 
+	# Set Sustainabot skin color to Goal 1 red (No Poverty)
+	if sustainabot:
+		sustainabot.set_skin_color(Color("#E5243B"))
+
 	# Reset state
 	buckets_filled = 0
 	time_remaining = 30.0

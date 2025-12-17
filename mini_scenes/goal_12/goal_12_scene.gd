@@ -101,6 +101,10 @@ func _connect_sustainabot_hit() -> void:
 func start_scene() -> void:
 	super.start_scene()
 
+	# Set Sustainabot skin color to Goal 12 orange (Responsible Consumption)
+	if sustainabot:
+		sustainabot.set_skin_color(Color("#BF8B2E"))
+
 	items_sorted = 0
 	items_correct = 0
 

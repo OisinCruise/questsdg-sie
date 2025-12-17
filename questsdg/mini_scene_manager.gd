@@ -25,8 +25,13 @@ func _ready() -> void:
 		maps_node = get_tree().root.get_node_or_null("cubes_scene_earlier/tu dub/maps")
 
 func open_mini_scene(goal_number: int) -> void:
-	if current_mini_scene or is_transitioning:
+	# If already transitioning, ignore (prevents race conditions)
+	if is_transitioning:
 		return
+
+	# If a scene is currently active, close it first
+	if current_mini_scene:
+		_interrupt_current_scene()
 
 	is_transitioning = true
 
@@ -89,6 +94,23 @@ func _on_task_completed(success: bool) -> void:
 
 func is_in_mini_scene() -> bool:
 	return current_mini_scene != null
+
+func _interrupt_current_scene() -> void:
+	if not current_mini_scene:
+		return
+
+	var goal_num = current_mini_scene.goal_number
+
+	# Stop any ongoing processes
+	current_mini_scene.end_scene()
+
+	# Don't await - immediately clean up
+	current_mini_scene.queue_free()
+	current_mini_scene = null
+
+	# Emit signal for cleanup
+	emit_signal("scene_closed", goal_num)
+	print("MiniSceneManager: Interrupted scene %d" % goal_num)
 
 func _fade_out_maps() -> void:
 	if not maps_node:

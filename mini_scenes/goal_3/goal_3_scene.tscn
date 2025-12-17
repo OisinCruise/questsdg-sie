@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://b7y5s12p4l6lp"]
+[gd_scene load_steps=20 format=3 uid="uid://b7y5s12p4l6lp"]
 
 [ext_resource type="Script" uid="uid://cmn5ua07evg4t" path="res://mini_scenes/goal_3/goal_3_scene.gd" id="1_goal3"]
 [ext_resource type="Script" uid="uid://q8iyfio56ilg" path="res://questsdg/intro_sequence.gd" id="2_4lq6r"]
@@ -6,6 +6,55 @@
 [ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="4_75hr3"]
 [ext_resource type="AudioStream" uid="uid://cxstxe6abanfh" path="res://sounds/swish-sound-94707.mp3" id="5_t1mji"]
 [ext_resource type="PackedScene" uid="uid://byarfqvldgb47" path="res://mini_scenes/goal_3/assets/Sink/sink.tscn" id="6_4lq6r"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tap"]
+size = Vector3(0.15, 0.1, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_soap"]
+albedo_color = Color(1, 0.8, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_soap"]
+material = SubResource("StandardMaterial3D_soap")
+size = Vector3(0.12, 0.04, 0.06)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_soap"]
+size = Vector3(0.12, 0.04, 0.06)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_soap_detect"]
+radius = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_progress_bg"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_progress_bg"]
+material = SubResource("StandardMaterial3D_progress_bg")
+size = Vector3(0.5, 0.04, 0.015)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_water_fill"]
+albedo_color = Color(0.2, 0.5, 0.9, 1)
+emission_enabled = true
+emission = Color(0.1, 0.25, 0.45, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_water_fill"]
+material = SubResource("StandardMaterial3D_water_fill")
+size = Vector3(0.48, 0.035, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_threshold"]
+emission_enabled = true
+emission = Color(0.3, 0.3, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_threshold"]
+material = SubResource("StandardMaterial3D_threshold")
+size = Vector3(0.006, 0.055, 0.025)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_soap_fill"]
+albedo_color = Color(1, 0.85, 0.2, 1)
+emission_enabled = true
+emission = Color(0.5, 0.42, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_soap_fill"]
+material = SubResource("StandardMaterial3D_soap_fill")
+size = Vector3(0.48, 0.035, 0.02)
 
 [node name="Goal3Scene" type="Node3D"]
 script = ExtResource("1_goal3")
@@ -25,3 +74,106 @@ gibberish_sounds = Array[AudioStream]([ExtResource("5_t1mji")])
 
 [node name="Sink" parent="." instance=ExtResource("6_4lq6r")]
 transform = Transform3D(-0.70710665, 0, -0.70710665, 0, 1, 0, 0.70710665, 0, -0.70710665, 0, 0, 0)
+
+[node name="Markers" type="Node3D" parent="."]
+
+[node name="WaterSpout" type="Marker3D" parent="Markers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0.66067016, -0.22)
+
+[node name="TapHandle" type="Marker3D" parent="Markers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10075283, 0.65048695, 0.022830103)
+
+[node name="WaterZone" type="Marker3D" parent="Markers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09970926, 0.5802492, -0.26068577)
+
+[node name="TapArea" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.65, 0.02)
+collision_layer = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TapArea"]
+shape = SubResource("BoxShape3D_tap")
+
+[node name="Soap" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0.72, 0.22)
+collision_layer = 2
+collision_mask = 3
+mass = 0.5
+linear_damp = 8.0
+angular_damp = 8.0
+
+[node name="SoapMesh" type="MeshInstance3D" parent="Soap"]
+mesh = SubResource("BoxMesh_soap")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Soap"]
+shape = SubResource("BoxShape3D_soap")
+
+[node name="HandDetectArea" type="Area3D" parent="Soap"]
+collision_layer = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Soap/HandDetectArea"]
+shape = SubResource("SphereShape3D_soap_detect")
+
+[node name="SoapRest" type="Marker3D" parent="Soap"]
+
+[node name="UI" type="Node3D" parent="."]
+transform = Transform3D(0.70705736, 0, 0.7071562, 0, 1, 0, -0.7071562, 0, 0.70705736, 0.12739682, 0.81338334, 0.14074612)
+
+[node name="InstructionLabel" type="Label3D" parent="UI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+pixel_size = 0.001
+billboard = 1
+text = "Wash your hands!"
+font_size = 48
+outline_size = 8
+
+[node name="TimerLabel" type="Label3D" parent="UI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22, 0)
+pixel_size = 0.001
+billboard = 1
+font_size = 36
+outline_size = 6
+
+[node name="WaterProgressBar" type="Node3D" parent="UI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+
+[node name="Background" type="MeshInstance3D" parent="UI/WaterProgressBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0075637847, 0, -0.0075627267)
+mesh = SubResource("BoxMesh_progress_bg")
+
+[node name="Fill" type="MeshInstance3D" parent="UI/WaterProgressBar"]
+transform = Transform3D(0.01, 0, 0, 0, 1, 0, 0, 0, 1, -0.24, 0, 0.005)
+mesh = SubResource("BoxMesh_water_fill")
+
+[node name="Threshold" type="MeshInstance3D" parent="UI/WaterProgressBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.115, 0, 0.01)
+mesh = SubResource("BoxMesh_threshold")
+
+[node name="Label" type="Label3D" parent="UI/WaterProgressBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, 0, 0)
+pixel_size = 0.001
+billboard = 1
+text = "Water"
+font_size = 24
+outline_size = 4
+
+[node name="SoapProgressBar" type="Node3D" parent="UI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08, 0)
+
+[node name="Background" type="MeshInstance3D" parent="UI/SoapProgressBar"]
+mesh = SubResource("BoxMesh_progress_bg")
+
+[node name="Fill" type="MeshInstance3D" parent="UI/SoapProgressBar"]
+transform = Transform3D(0.01, 0, 0, 0, 1, 0, 0, 0, 1, -0.24, 0, 0.005)
+mesh = SubResource("BoxMesh_soap_fill")
+
+[node name="Threshold" type="MeshInstance3D" parent="UI/SoapProgressBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.115, 0, 0.01)
+mesh = SubResource("BoxMesh_threshold")
+
+[node name="Label" type="Label3D" parent="UI/SoapProgressBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, 0, 0)
+pixel_size = 0.001
+billboard = 1
+text = "Soap"
+font_size = 24
+outline_size = 4

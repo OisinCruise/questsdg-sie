@@ -500,3 +500,36 @@ func _on_animation_finished(anim_name: StringName) -> void:
 	if anim_name in reset_anims:
 		print("Sustainabot: Animation '%s' finished, returning to idle" % anim_name)
 		set_state("idle")
+
+
+# Skin color modification - applies color tint to all mesh materials
+func set_skin_color(color: Color) -> void:
+	var model = get_node_or_null("Model")
+	if model:
+		_apply_color_recursive(model, color)
+	else:
+		# If no Model node, apply to self (in case structure is different)
+		_apply_color_recursive(self, color)
+	print("Sustainabot: Skin color set to %s" % color)
+
+
+func _apply_color_recursive(node: Node, color: Color) -> void:
+	if node is MeshInstance3D:
+		var mesh_instance = node as MeshInstance3D
+		var surface_count = mesh_instance.get_surface_override_material_count()
+		if surface_count == 0 and mesh_instance.mesh:
+			surface_count = mesh_instance.mesh.get_surface_count()
+
+		for surface_idx in range(surface_count):
+			var mat = mesh_instance.get_surface_override_material(surface_idx)
+			if not mat and mesh_instance.mesh:
+				mat = mesh_instance.mesh.surface_get_material(surface_idx)
+
+			if mat and mat is StandardMaterial3D:
+				var new_mat = mat.duplicate() as StandardMaterial3D
+				# Tint the albedo color (preserves texture detail)
+				new_mat.albedo_color = color
+				mesh_instance.set_surface_override_material(surface_idx, new_mat)
+
+	for child in node.get_children():
+		_apply_color_recursive(child, color)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://cohbpau5hhc6"]
+[gd_scene load_steps=21 format=3 uid="uid://cohbpau5hhc6"]
 
 [ext_resource type="Script" uid="uid://dfi8pw7es8ie0" path="res://mini_scenes/goal_2/goal_2_scene.gd" id="1_kjpmt"]
 [ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="2_oopbg"]
