@@ -6,10 +6,6 @@
 
 **Class Group:** TU 856/4 - Game Engines Module - TU Dublin
 
-**Video:**
-
-[![YouTube](http://img.youtube.com/vi/J2kHSSFA4NU/0.jpg)](https://www.youtube.com/watch?v=J2kHSSFA4NU)
-
 # Description of the project
 
 Quest:SDG Extended is an immersive XR experience for Meta Quest that brings the UN's Sustainable Development Goals to life through interactive mini-scenes. Building upon the existing Quest:SDG framework, I created four unique interactive experiences focused on SDG Goals 1, 2, 3, and 12, each featuring task-based learning mechanics that engage users in sustainability-related challenges.
