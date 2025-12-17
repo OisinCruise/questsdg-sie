@@ -13,8 +13,10 @@ var sustainabot: Sustainabot = null
 var feedback_manager: FeedbackManager = null
 var is_active: bool = false
 var fade_tween: Tween = null
+var _original_scale: Vector3 = Vector3.ONE  # Store scene's authored scale
 
 func _ready() -> void:
+	_original_scale = scale  # Store before zeroing
 	scale = Vector3.ZERO
 	if has_node("Sustainabot"):
 		sustainabot = $Sustainabot
@@ -42,7 +44,8 @@ func _fade_in_environment() -> void:
 	if fade_tween:
 		fade_tween.kill()
 	fade_tween = create_tween().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
-	fade_tween.tween_property(self, "scale", Vector3.ONE, 1.5)
+	# Tween to original scale (not Vector3.ONE) to preserve scene's authored scale
+	fade_tween.tween_property(self, "scale", _original_scale, 1.5)
 
 func _fade_out_environment() -> void:
 	if fade_tween:
