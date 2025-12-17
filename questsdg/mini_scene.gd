@@ -16,7 +16,7 @@ var fade_tween: Tween = null
 var _original_scale: Vector3 = Vector3.ONE  # Store scene's authored scale
 
 func _ready() -> void:
-	_original_scale = scale  # Store before zeroing (preserves scene transform scale)
+	_original_scale = scale  # Store before zeroing
 	scale = Vector3.ZERO
 	if has_node("Sustainabot"):
 		sustainabot = $Sustainabot

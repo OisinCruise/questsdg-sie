@@ -5,13 +5,10 @@ var items_correct: int = 0
 var trash_bags: Array[RigidBody3D] = []
 var intro_sequence: IntroSequence = null
 
-# Bin detection areas
-var recycling_bin_area: Area3D = null
-var waste_bin_area: Area3D = null
-
-# Track objects currently in bins
-var objects_in_recycling: Array[RigidBody3D] = []
-var objects_in_waste: Array[RigidBody3D] = []
+# Continuous detection - bin positions cached for every-frame checking
+var recycling_bin_center: Vector3 = Vector3.ZERO
+var waste_bin_center: Vector3 = Vector3.ZERO
+const BIN_DETECTION_RADIUS: float = 0.35  # Detection radius for bins
 
 # Confetti particles for correct placement
 var confetti_particles: GPUParticles3D = null
@@ -30,57 +27,24 @@ func setup_scene() -> void:
 		intro_sequence = $IntroSequence
 		intro_sequence.sustainabot = sustainabot
 
-	_setup_bin_areas()
 	_setup_confetti_particles()
 	_connect_sustainabot_hit()
 
-func _setup_bin_areas() -> void:
-	# Create detection areas at SCENE ROOT (not as children of scaled bins)
-	# The bins have complex scale hierarchy: Bins(0.2) * TrashModels(0.01) * Bin(18.26)
-	# Adding areas as children would make them tiny (0.5 * 0.03652 = 0.018m)
-
+func _cache_bin_positions() -> void:
+	# Cache bin positions for continuous detection
 	if has_node("Bins/TrashModels/RecyclingBin"):
 		var recycling_node = get_node("Bins/TrashModels/RecyclingBin")
-		var world_pos = recycling_node.global_position
-		recycling_bin_area = _create_bin_area_at_position(world_pos, "recycling")
+		recycling_bin_center = recycling_node.global_position
 	else:
 		push_warning("Goal 12: RecyclingBin node not found!")
 
 	if has_node("Bins/TrashModels/WasteBin"):
 		var waste_node = get_node("Bins/TrashModels/WasteBin")
-		var world_pos = waste_node.global_position
-		waste_bin_area = _create_bin_area_at_position(world_pos, "waste")
+		waste_bin_center = waste_node.global_position
 	else:
 		push_warning("Goal 12: WasteBin node not found!")
 
-func _create_bin_area_at_position(world_pos: Vector3, bin_type: String) -> Area3D:
-	var area = Area3D.new()
-	area.name = "BinArea_" + bin_type
-	area.collision_layer = 0
-	area.collision_mask = 2  # Detect layer 2 (trash bags)
-	area.monitoring = true
-	area.monitorable = false
-	area.set_meta("bin_type", bin_type)
-
-	# Create detection zone at bin rim - using WORLD scale dimensions
-	var shape = CollisionShape3D.new()
-	var cylinder = CylinderShape3D.new()
-	cylinder.radius = 0.25  # 25cm radius for bin opening
-	cylinder.height = 0.4   # 40cm tall detection zone
-	shape.shape = cylinder
-	area.add_child(shape)
-
-	area.body_entered.connect(func(body): _on_bin_body_entered(area, body))
-	area.body_exited.connect(func(body): _on_bin_body_exited(area, body))
-
-	# Add to scene root (self) so it's not affected by bin scaling
-	add_child(area)
-
-	# Position at bin location with rim offset (bin opening is near top)
-	area.global_position = world_pos + Vector3(0, 0.3, 0)
-
-	print("Goal 12: Created BinArea for %s at world pos %s" % [bin_type, area.global_position])
-	return area
+	print("Goal 12: Bin positions cached - Recycling: %s, Waste: %s" % [recycling_bin_center, waste_bin_center])
 
 func _setup_confetti_particles() -> void:
 	confetti_particles = GPUParticles3D.new()
@@ -130,25 +94,6 @@ func _emit_confetti_at(position: Vector3) -> void:
 		confetti_particles.restart()
 		confetti_particles.emitting = true
 
-func _on_bin_body_entered(bin_area: Area3D, body: Node3D) -> void:
-	print("Goal 12: Body entered bin - %s (is trash: %s)" % [body.name, body in trash_bags])
-	if body is RigidBody3D and body in trash_bags:
-		var bin_type = bin_area.get_meta("bin_type", "")
-		if bin_type == "recycling":
-			if body not in objects_in_recycling:
-				objects_in_recycling.append(body)
-		elif bin_type == "waste":
-			if body not in objects_in_waste:
-				objects_in_waste.append(body)
-
-func _on_bin_body_exited(bin_area: Area3D, body: Node3D) -> void:
-	if body is RigidBody3D:
-		var bin_type = bin_area.get_meta("bin_type", "")
-		if bin_type == "recycling":
-			objects_in_recycling.erase(body)
-		elif bin_type == "waste":
-			objects_in_waste.erase(body)
-
 func _connect_sustainabot_hit() -> void:
 	if sustainabot:
 		sustainabot.hit_by_object.connect(_on_sustainabot_hit)
@@ -161,6 +106,9 @@ func start_scene() -> void:
 
 	# Wait for scene fade-in to complete
 	await get_tree().create_timer(1.6).timeout
+
+	# Cache bin positions for continuous detection
+	_cache_bin_positions()
 
 	# Create trash bag physics bodies
 	_create_trash_bags()
@@ -192,24 +140,11 @@ func _connect_hand_signals() -> void:
 				if not hand.object_released.is_connected(_on_object_released):
 					hand.object_released.connect(_on_object_released)
 
+# Object released handler (kept for logging - detection is now continuous)
 func _on_object_released(object: RigidBody3D) -> void:
 	if object not in trash_bags:
 		return
-
-	# Wait a brief moment for physics to settle
-	await get_tree().create_timer(0.3).timeout
-
-	# Check object is still valid after await
-	if not is_instance_valid(object):
-		return
-
-	# Check if object is in a bin - both bins make trash disappear
-	# WASTE bin = correct (trash bags belong there)
-	# RECYCLING bin = incorrect (trash bags don't belong there)
-	if object in objects_in_waste:
-		_handle_item_sorted(object, true)  # Correct placement
-	elif object in objects_in_recycling:
-		_handle_item_sorted(object, false)  # Incorrect placement
+	print("Goal 12: Trash bag released - continuous detection will handle it")
 
 func _create_trash_bags() -> void:
 	for bag_path in TRASH_BAG_PATHS:
@@ -329,6 +264,49 @@ func _physics_process(delta: float) -> void:
 					visual.global_position = bag.global_position
 					visual.global_rotation = bag.global_rotation
 
+	# Continuous bin detection - check every frame
+	_check_trash_in_bins()
+
+# CONTINUOUS BIN DETECTION - checks every physics frame
+func _check_trash_in_bins() -> void:
+	var items_to_process: Array = []
+
+	for bag in trash_bags:
+		if not is_instance_valid(bag):
+			continue
+
+		var bag_pos = bag.global_position
+
+		# Check if inside waste bin bounds
+		if waste_bin_center != Vector3.ZERO:
+			var dist_to_waste = bag_pos.distance_to(waste_bin_center)
+			if dist_to_waste < BIN_DETECTION_RADIUS:
+				items_to_process.append({"bag": bag, "bin": "waste"})
+				continue
+
+		# Check if inside recycling bin bounds
+		if recycling_bin_center != Vector3.ZERO:
+			var dist_to_recycling = bag_pos.distance_to(recycling_bin_center)
+			if dist_to_recycling < BIN_DETECTION_RADIUS:
+				items_to_process.append({"bag": bag, "bin": "recycling"})
+				continue
+
+	# Process detected items (outside loop to avoid modifying array during iteration)
+	for item in items_to_process:
+		_process_sorted_trash(item.bag, item.bin)
+
+func _process_sorted_trash(bag: RigidBody3D, bin_type: String) -> void:
+	if not is_instance_valid(bag):
+		return
+
+	# WASTE bin = correct (trash bags belong there)
+	# RECYCLING bin = incorrect (trash bags don't belong there)
+	var correct: bool = (bin_type == "waste")
+
+	print("Goal 12: Trash in %s bin, correct=%s" % [bin_type, correct])
+
+	_handle_item_sorted(bag, correct)
+
 func _apply_upright_correction(body: RigidBody3D, delta: float) -> void:
 	# Get current up vector and target up vector
 	var current_up = body.global_transform.basis.y
@@ -377,10 +355,8 @@ func _handle_item_sorted(object: RigidBody3D, correct: bool) -> void:
 			sustainabot.show_speech(wrong_messages[randi() % wrong_messages.size()], 2.0)
 		report_action(false)
 
-	# Remove from tracked lists
+	# Remove from tracked list
 	trash_bags.erase(object)
-	objects_in_recycling.erase(object)
-	objects_in_waste.erase(object)
 
 	# Queue free after short delay
 	await get_tree().create_timer(0.3).timeout
@@ -438,7 +414,5 @@ func end_scene() -> void:
 		if is_instance_valid(bag):
 			bag.queue_free()
 	trash_bags.clear()
-	objects_in_recycling.clear()
-	objects_in_waste.clear()
 
 	super.end_scene()
