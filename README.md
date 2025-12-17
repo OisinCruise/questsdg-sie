@@ -97,14 +97,11 @@ The project employs a hierarchical scene management system built on Godot's node
 | `goal_12_scene.gd` | Waste sorting scene controller | `mini_scenes/goal_12/goal_12_scene.gd` |
 | `SceneGrabbable` | Generic grabbable object system | `mini_scenes/goal_12/objects/scene_grabbable.gd` |
 | `WasteItem` | Waste item classification | `mini_scenes/goal_12/objects/waste_item.gd` |
-| `goal_box.gd` | Static goal box interaction | `questsdg/goal_box.gd` |
-| `goal_box_animated.gd` | Animated goal box interaction | `questsdg/goal_box_animated.gd` |
 
 ## Modified Scripts (Adapted from Quest:SDG)
 
 | Script | Modifications | Original Source |
 |--------|---------------|-----------------|
-| `mini_scene_manager.gd` | Added scene cooldowns, duplicate prevention | Quest:SDG framework |
 | `goal_box.gd` | Added immediate state reset after signal emission | Quest:SDG framework |
 | `goal_box_animated.gd` | Added hand state clearing on trigger | Quest:SDG framework |
 | `cubes_scene_earlier.gd` | Added reset calls for all goal boxes on scene close | Quest:SDG framework |
