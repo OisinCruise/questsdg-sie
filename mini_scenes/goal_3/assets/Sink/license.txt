@@ -1,0 +1,8 @@
+Model Information:
+* title:	[TF2 HD] Sink
+* source:	https://sketchfab.com/3d-models/tf2-hd-sink-2b29f13adcb745879e074b743d6140a5
+* author:	JotC (https://sketchfab.com/IceFredd)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

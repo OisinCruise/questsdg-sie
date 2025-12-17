@@ -1,10 +1,20 @@
-[gd_scene load_steps=6 format=3 uid="uid://b7y5s12p4l6lp"]
+[gd_scene load_steps=10 format=3 uid="uid://b7y5s12p4l6lp"]
 
 [ext_resource type="Script" uid="uid://b8vvbijdrqw6w" path="res://mini_scenes/goal_12/goal_12_scene.gd" id="1_nbkmv"]
 [ext_resource type="Script" uid="uid://q8iyfio56ilg" path="res://questsdg/intro_sequence.gd" id="2_4lq6r"]
 [ext_resource type="AudioStream" uid="uid://cy78ftcl5bwxt" path="res://sounds/PowerUp10.wav" id="3_jwwln"]
 [ext_resource type="PackedScene" uid="uid://cjsnqon4ps6ac" path="res://mini_scenes/shared/sustainabot/sustainabot.tscn" id="4_75hr3"]
 [ext_resource type="AudioStream" uid="uid://cxstxe6abanfh" path="res://sounds/swish-sound-94707.mp3" id="5_t1mji"]
+[ext_resource type="PackedScene" uid="uid://byarfqvldgb47" path="res://mini_scenes/goal_3/assets/Sink/sink.tscn" id="6_4lq6r"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4lq6r"]
+albedo_color = Color(1, 0.72156864, 0.08235294, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jwwln"]
+material = SubResource("StandardMaterial3D_4lq6r")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4lq6r"]
+size = Vector3(1, 1.5480957, 1.3984985)
 
 [node name="Goal3Scene" type="Node3D"]
 script = ExtResource("1_nbkmv")
@@ -21,3 +31,18 @@ max_distance = 10.0
 [node name="Sustainabot" parent="." instance=ExtResource("4_75hr3")]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.3, 0.2575965, -1.1039106)
 gibberish_sounds = Array[AudioStream]([ExtResource("5_t1mji")])
+
+[node name="Sink" parent="." instance=ExtResource("6_4lq6r")]
+transform = Transform3D(-0.70710665, 0, -0.70710665, 0, 1, 0, 0.70710665, 0, -0.70710665, 0, 0, 0)
+
+[node name="Soap" type="Node3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Soap"]
+transform = Transform3D(0.1, 0, 0, 0, 0.03, 0, 0, 0, 0.05, -0.24099863, 0.6141183, 0.1347754)
+mesh = SubResource("BoxMesh_jwwln")
+
+[node name="RigidBody3D" type="RigidBody3D" parent="Soap/MeshInstance3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Soap/MeshInstance3D/RigidBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.122924805, 0.029388428)
+shape = SubResource("BoxShape3D_4lq6r")
