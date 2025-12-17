@@ -57,6 +57,7 @@ material = SubResource("StandardMaterial3D_soap_fill")
 size = Vector3(0.48, 0.035, 0.02)
 
 [node name="Goal3Scene" type="Node3D"]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, 0)
 script = ExtResource("1_goal3")
 goal_number = 3
 

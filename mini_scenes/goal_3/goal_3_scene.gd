@@ -103,7 +103,11 @@ func _get_references() -> void:
 		soap_body.add_to_group("soap_item")
 		# Freeze soap until scene is ready (prevents falling through during fade-in)
 		soap_body.freeze = true
-		print("Goal 3: Found Soap in scene at %s" % soap_body.position)
+		# Ensure soap has proper physics properties
+		if soap_body.mass < 0.1:
+			soap_body.mass = 0.5
+		soap_body.gravity_scale = 1.0  # Will be overridden by manual gravity, but good to set
+		print("Goal 3: Found Soap in scene at %s (mass=%.2f)" % [soap_body.position, soap_body.mass])
 	else:
 		print("Goal 3: ERROR - Soap node not found in scene!")
 
@@ -126,21 +130,46 @@ func _get_references() -> void:
 
 # Fist grab handlers for soap
 func _connect_fist_signals() -> void:
-	if left_hand and left_hand.has_node("HandPoseDetector"):
-		var detector = left_hand.get_node("HandPoseDetector")
-		if not detector.pose_started.is_connected(_on_left_hand_pose_started):
-			detector.pose_started.connect(_on_left_hand_pose_started)
-		if not detector.pose_ended.is_connected(_on_left_hand_pose_ended):
-			detector.pose_ended.connect(_on_left_hand_pose_ended)
-		print("Goal 3: Connected left hand fist detection")
+	if left_hand and is_instance_valid(left_hand):
+		if left_hand.has_node("HandPoseDetector"):
+			var detector = left_hand.get_node("HandPoseDetector")
+			if detector and not detector.pose_started.is_connected(_on_left_hand_pose_started):
+				detector.pose_started.connect(_on_left_hand_pose_started)
+				detector.pose_ended.connect(_on_left_hand_pose_ended)
+				print("Goal 3: Connected left hand fist detection")
+		# Also connect area signals for the hand's collision area (fallback if no pose detector)
+		if left_hand.has_node("hand_area"):
+			var hand_area = left_hand.get_node("hand_area")
+			if hand_area is Area3D and soap_body and soap_body.has_node("HandDetectArea"):
+				var soap_detect_area = soap_body.get_node("HandDetectArea")
+				if not hand_area.area_entered.is_connected(_on_hand_near_soap):
+					hand_area.area_entered.connect(_on_hand_near_soap.bind("left"))
+					print("Goal 3: Connected left hand area detection")
 
-	if right_hand and right_hand.has_node("HandPoseDetector"):
-		var detector = right_hand.get_node("HandPoseDetector")
-		if not detector.pose_started.is_connected(_on_right_hand_pose_started):
-			detector.pose_started.connect(_on_right_hand_pose_started)
-		if not detector.pose_ended.is_connected(_on_right_hand_pose_ended):
-			detector.pose_ended.connect(_on_right_hand_pose_ended)
-		print("Goal 3: Connected right hand fist detection")
+	if right_hand and is_instance_valid(right_hand):
+		if right_hand.has_node("HandPoseDetector"):
+			var detector = right_hand.get_node("HandPoseDetector")
+			if detector and not detector.pose_started.is_connected(_on_right_hand_pose_started):
+				detector.pose_started.connect(_on_right_hand_pose_started)
+				detector.pose_ended.connect(_on_right_hand_pose_ended)
+				print("Goal 3: Connected right hand fist detection")
+		# Also connect area signals for the hand's collision area (fallback)
+		if right_hand.has_node("hand_area"):
+			var hand_area = right_hand.get_node("hand_area")
+			if hand_area is Area3D and soap_body and soap_body.has_node("HandDetectArea"):
+				var soap_detect_area = soap_body.get_node("HandDetectArea")
+				if not hand_area.area_entered.is_connected(_on_hand_near_soap):
+					hand_area.area_entered.connect(_on_hand_near_soap.bind("right"))
+					print("Goal 3: Connected right hand area detection")
+
+
+func _on_hand_near_soap(area: Area3D, hand_name: String) -> void:
+	# Fallback grab mechanism when hand enters soap detection area
+	if area == soap_body.get_node_or_null("HandDetectArea"):
+		var hand = left_hand if hand_name == "left" else right_hand
+		if hand and not soap_held_by:
+			_try_grab_soap(hand)
+			print("Goal 3: Soap auto-grabbed by %s (area detection)" % hand_name)
 
 
 func _on_left_hand_pose_started(pose_name: String) -> void:
@@ -170,6 +199,9 @@ func _on_right_hand_pose_ended(pose_name: String) -> void:
 
 
 func _try_grab_soap(hand: Node3D) -> void:
+	if not hand or not is_instance_valid(hand):
+		return
+		
 	if soap_held_by != null:
 		return
 
@@ -177,7 +209,7 @@ func _try_grab_soap(hand: Node3D) -> void:
 		return
 
 	var dist = hand.global_position.distance_to(soap_body.global_position)
-	if dist > 0.25:  # Must be within 25cm
+	if dist > 0.3:  # Must be within 30cm (increased for easier grabbing)
 		return
 
 	_soap_original_freeze = soap_body.freeze
@@ -188,7 +220,7 @@ func _try_grab_soap(hand: Node3D) -> void:
 	soap_body.angular_velocity = Vector3.ZERO
 
 	soap_held_by = hand
-	print("Goal 3: Soap grabbed by %s" % hand.name)
+	print("Goal 3: Soap grabbed by %s (distance: %.2fcm)" % [hand.name, dist * 100])
 
 
 func _release_soap() -> void:
@@ -210,6 +242,41 @@ func _update_soap_position() -> void:
 		soap_body.global_position = soap_body.global_position.lerp(
 			soap_held_by.global_position, 15.0 * get_physics_process_delta_time()
 		)
+
+
+func _check_proximity_grab() -> void:
+	# Auto-grab soap when hand gets very close (fallback if pose detection fails)
+	const GRAB_DISTANCE = 0.15  # 15cm auto-grab radius
+	const RELEASE_DISTANCE = 0.5  # 50cm release distance
+	
+	if not soap_body or not is_instance_valid(soap_body):
+		return
+	
+	# Account for scene scale
+	var scaled_grab = GRAB_DISTANCE * scale.x
+	var scaled_release = RELEASE_DISTANCE * scale.x
+	
+	# Check if currently held soap should be released (hand moved too far)
+	if soap_held_by and is_instance_valid(soap_held_by):
+		var dist_to_holder = soap_held_by.global_position.distance_to(soap_body.global_position)
+		if dist_to_holder > scaled_release:
+			print("Goal 3: Soap released (hand moved too far: %.2fcm)" % (dist_to_holder * 100))
+			_release_soap()
+			return
+	
+	# Try to grab if not currently held
+	if not soap_held_by:
+		if left_hand and is_instance_valid(left_hand):
+			var dist = left_hand.global_position.distance_to(soap_body.global_position)
+			if dist < scaled_grab:
+				_try_grab_soap(left_hand)
+				return
+		
+		if right_hand and is_instance_valid(right_hand):
+			var dist = right_hand.global_position.distance_to(soap_body.global_position)
+			if dist < scaled_grab:
+				_try_grab_soap(right_hand)
+				return
 
 
 # Connect tap area signals (like Goal 1 does with pump_handle)
@@ -240,6 +307,52 @@ func _is_hand_area(area: Area3D) -> bool:
 	return "hand" in name_lower or "hand" in parent_name
 
 
+func _is_left_hand(node: Node) -> bool:
+	var name_lower = node.name.to_lower()
+	return "left" in name_lower
+
+
+func _on_water_zone_area_entered(area: Area3D) -> void:
+	if _is_hand_area(area):
+		if _is_left_hand(area):
+			left_hand_in_water = true
+			print("Goal 3: LEFT HAND entered water zone")
+		else:
+			right_hand_in_water = true
+			print("Goal 3: RIGHT HAND entered water zone")
+
+
+func _on_water_zone_area_exited(area: Area3D) -> void:
+	if _is_hand_area(area):
+		if _is_left_hand(area):
+			left_hand_in_water = false
+			print("Goal 3: LEFT HAND exited water zone")
+		else:
+			right_hand_in_water = false
+			print("Goal 3: RIGHT HAND exited water zone")
+
+
+func _on_water_zone_body_entered(body: Node3D) -> void:
+	# Also handle RigidBody3D/CharacterBody3D if hands are bodies
+	var name_lower = body.name.to_lower()
+	if "hand" in name_lower or "left" in name_lower or "right" in name_lower:
+		if "left" in name_lower:
+			left_hand_in_water = true
+			print("Goal 3: LEFT HAND BODY entered water zone")
+		else:
+			right_hand_in_water = true
+			print("Goal 3: RIGHT HAND BODY entered water zone")
+
+
+func _on_water_zone_body_exited(body: Node3D) -> void:
+	var name_lower = body.name.to_lower()
+	if "hand" in name_lower or "left" in name_lower or "right" in name_lower:
+		if "left" in name_lower:
+			left_hand_in_water = false
+		else:
+			right_hand_in_water = false
+
+
 func _toggle_water() -> void:
 	water_active = not water_active
 
@@ -263,13 +376,21 @@ func _setup_water_detection_area() -> void:
 	water_detection_area = Area3D.new()
 	water_detection_area.name = "WaterDetectionArea"
 	water_detection_area.collision_layer = 0
-	water_detection_area.collision_mask = 1
+	water_detection_area.collision_mask = 1  # Detect layer 1 (hands)
+	water_detection_area.monitoring = true
+	water_detection_area.monitorable = false
 
 	var water_shape = CollisionShape3D.new()
 	var water_box = BoxShape3D.new()
-	water_box.size = Vector3(0.35, 0.2, 0.3)  # Larger detection zone
+	water_box.size = Vector3(0.5, 0.3, 0.4)  # Larger detection zone for easier detection
 	water_shape.shape = water_box
 	water_detection_area.add_child(water_shape)
+
+	# Connect signals for automatic detection
+	water_detection_area.area_entered.connect(_on_water_zone_area_entered)
+	water_detection_area.area_exited.connect(_on_water_zone_area_exited)
+	water_detection_area.body_entered.connect(_on_water_zone_body_entered)
+	water_detection_area.body_exited.connect(_on_water_zone_body_exited)
 
 	# Add as child of WaterZone marker (inherits position automatically)
 	if water_zone_marker:
@@ -378,12 +499,13 @@ func _create_soap_particle_system() -> GPUParticles3D:
 
 
 func _update_progress_bar(bar: Node3D, progress: float) -> void:
-	if not bar:
+	if not bar or not is_instance_valid(bar):
 		return
 	var fill = bar.get_node_or_null("Fill") as MeshInstance3D
-	if fill:
-		var clamped = clamp(progress, 0.01, 1.0)
+	if fill and is_instance_valid(fill):
+		var clamped = clamp(progress, 0.001, 1.0)  # Minimum visible progress
 		fill.scale.x = clamped
+		# Position so the left edge stays fixed and right edge extends
 		fill.position.x = -0.24 + (0.24 * clamped)
 
 
@@ -481,15 +603,23 @@ func _physics_process(delta: float) -> void:
 	if _tap_cooldown > 0:
 		_tap_cooldown -= delta
 
-	if not left_hand or not right_hand:
+	# Continuously check for XR hands and reconnect signals if needed
+	if not left_hand or not right_hand or not is_instance_valid(left_hand) or not is_instance_valid(right_hand):
 		_get_xr_references()
-		_connect_fist_signals()
+		if left_hand and right_hand:
+			_connect_fist_signals()
+
+	# Apply manual gravity to soap (world gravity is 0)
+	if soap_body and is_instance_valid(soap_body) and not soap_body.freeze:
+		soap_body.apply_central_force(Vector3(0, -9.8 * soap_body.mass, 0))
 
 	_update_soap_position()
+	_check_proximity_grab()  # Auto-grab soap when hand gets close
 	_check_hands_in_water()
 	_check_soap_contact()
 	_update_soap_particles()
 	_update_progress(delta)
+	_debug_scene_state(delta)
 
 
 func _get_xr_references() -> void:
@@ -503,34 +633,43 @@ func _get_xr_references() -> void:
 
 
 func _check_hands_in_water() -> void:
-	left_hand_in_water = false
-	right_hand_in_water = false
-
+	# Now handled by Area3D signals (_on_water_zone_area_entered/exited)
+	# But we keep this function for potential fallback distance checks
+	
 	if not water_active:
+		left_hand_in_water = false
+		right_hand_in_water = false
 		return
-
-	# Use water_detection_area position (child of marker, so position is correct)
-	if not water_detection_area:
+	
+	# Signal-based detection is primary, but add fallback distance check
+	if not water_detection_area or not is_instance_valid(water_detection_area):
 		return
-
+	
 	var check_center = water_detection_area.global_position
-
+	
 	# Skip if position is still at origin (scene not fully loaded)
-	if check_center == Vector3.ZERO:
+	if check_center.length_squared() < 0.01:
 		return
-
-	if left_hand and is_instance_valid(left_hand):
+	
+	# Account for scene scale in distance check
+	var scaled_radius = WATER_DETECTION_RADIUS * scale.x
+	
+	# Fallback: Check distance if signal-based detection didn't catch it
+	if left_hand and is_instance_valid(left_hand) and not left_hand_in_water:
 		var dist = left_hand.global_position.distance_to(check_center)
-		if dist < WATER_DETECTION_RADIUS:
+		if dist < scaled_radius:
 			left_hand_in_water = true
-
-	if right_hand and is_instance_valid(right_hand):
+			print("Goal 3: Left hand detected by fallback distance check")
+	
+	if right_hand and is_instance_valid(right_hand) and not right_hand_in_water:
 		var dist = right_hand.global_position.distance_to(check_center)
-		if dist < WATER_DETECTION_RADIUS:
+		if dist < scaled_radius:
 			right_hand_in_water = true
+			print("Goal 3: Right hand detected by fallback distance check")
 
 
 func _check_soap_contact() -> void:
+	var was_touching = soap_touching_left or soap_touching_right
 	soap_touching_left = false
 	soap_touching_right = false
 
@@ -538,16 +677,26 @@ func _check_soap_contact() -> void:
 		return
 
 	var soap_pos = soap_body.global_position
+	
+	# Account for scene scale in detection radius
+	var scaled_radius = SOAP_CONTACT_RADIUS * scale.x
 
 	if left_hand and is_instance_valid(left_hand):
 		var dist = left_hand.global_position.distance_to(soap_pos)
-		if dist < SOAP_CONTACT_RADIUS:
+		if dist < scaled_radius:
 			soap_touching_left = true
 
 	if right_hand and is_instance_valid(right_hand):
 		var dist = right_hand.global_position.distance_to(soap_pos)
-		if dist < SOAP_CONTACT_RADIUS:
+		if dist < scaled_radius:
 			soap_touching_right = true
+	
+	# Debug when soap contact starts
+	var now_touching = soap_touching_left or soap_touching_right
+	if now_touching and not was_touching:
+		print("Goal 3: Soap contact started (left=%s, right=%s, scaled_radius=%.2f)" % [
+			soap_touching_left, soap_touching_right, scaled_radius * 100
+		])
 
 
 func _update_soap_particles() -> void:
@@ -562,6 +711,44 @@ func _update_soap_particles() -> void:
 		soap_particles_right.emitting = soap_touching_right
 
 
+var _debug_timer: float = 0.0
+func _debug_scene_state(delta: float) -> void:
+	_debug_timer += delta
+	if _debug_timer >= 5.0:  # Log every 5 seconds
+		_debug_timer = 0.0
+		
+		print("=== Goal 3 DEBUG (every 5s) ===")
+		print("  Scene scale: %s" % scale)
+		print("  Water active: %s" % water_active)
+		print("  Current state: %s" % GameState.keys()[current_state])
+		
+		if left_hand:
+			print("  Left hand pos: %s" % left_hand.global_position)
+		if right_hand:
+			print("  Right hand pos: %s" % right_hand.global_position)
+		
+		if water_detection_area:
+			print("  Water zone pos: %s" % water_detection_area.global_position)
+			print("  Water zone scale: %s" % water_detection_area.global_scale)
+			
+		if soap_body:
+			print("  Soap pos: %s (held=%s, frozen=%s)" % [
+				soap_body.global_position,
+				soap_held_by != null,
+				soap_body.freeze
+			])
+		
+		if left_hand and water_detection_area:
+			var dist = left_hand.global_position.distance_to(water_detection_area.global_position)
+			var threshold = WATER_DETECTION_RADIUS * scale.x
+			print("  Left to water: %.2fcm (threshold=%.2fcm)" % [dist * 100, threshold * 100])
+			
+		if right_hand and water_detection_area:
+			var dist = right_hand.global_position.distance_to(water_detection_area.global_position)
+			var threshold = WATER_DETECTION_RADIUS * scale.x
+			print("  Right to water: %.2fcm (threshold=%.2fcm)" % [dist * 100, threshold * 100])
+
+
 func _update_progress(delta: float) -> void:
 	if current_state != GameState.WASHING:
 		return
@@ -569,18 +756,27 @@ func _update_progress(delta: float) -> void:
 	var hands_in_water = left_hand_in_water or right_hand_in_water
 	var soap_active = soap_touching_left or soap_touching_right
 
+	# Update water progress
 	if hands_in_water and water_active:
 		water_progress = min(water_progress + delta * WATER_FILL_RATE, 1.0)
 	else:
 		water_progress = max(water_progress - delta * WATER_DRAIN_RATE, 0.0)
 
+	# Update soap progress
 	if soap_active:
 		soap_progress = min(soap_progress + delta * SOAP_FILL_RATE, 1.0)
 	else:
 		soap_progress = max(soap_progress - delta * SOAP_DRAIN_RATE, 0.0)
 
+	# Update visual progress bars
 	_update_progress_bar(water_progress_bar, water_progress)
 	_update_progress_bar(soap_progress_bar, soap_progress)
+	
+	# Debug output every 2 seconds
+	if int(Time.get_ticks_msec() / 2000.0) != int((Time.get_ticks_msec() - delta * 1000) / 2000.0):
+		print("Goal 3: Water=%.1f%% (hands=%s), Soap=%.1f%% (soap=%s)" % [
+			water_progress * 100, hands_in_water, soap_progress * 100, soap_active
+		])
 
 	var currently_above = water_progress >= SUCCESS_THRESHOLD and soap_progress >= SUCCESS_THRESHOLD
 
