@@ -56,24 +56,114 @@ The project employs a hierarchical scene management system built on Godot's node
 
 #### Goal 1 - Water Pump (No Poverty)
 - **Physics System**: HingeJoint3D constrains pump handle rotation with angular limits
+  ```gdscript
+  func _setup_hinge_constraint() -> void:
+      hinge_joint = HingeJoint3D.new()
+      hinge_joint.set_flag(HingeJoint3D.FLAG_USE_LIMIT, true)
+      hinge_joint.set_param(HingeJoint3D.PARAM_LIMIT_LOWER, deg_to_rad(min_angle_deg))
+      hinge_joint.set_param(HingeJoint3D.PARAM_LIMIT_UPPER, deg_to_rad(max_angle_deg))
+      hinge_joint.set_param(HingeJoint3D.PARAM_LIMIT_SOFTNESS, 0.9)
+  ```
 - **Bucket Mechanics**: RigidBody3D with custom fill detection using timed proximity checks
+  ```gdscript
+  func add_water(delta: float) -> void:
+      if is_filled:
+          return
+      fill_amount += delta
+      _update_fill_visual()
+      if fill_amount >= fill_threshold:
+          _complete_fill()
+  ```
 - **State Management**: Tracks pump cycles and bucket fill progress, enabling/disabling pump based on completion
+  ```gdscript
+  func _on_bucket_filled() -> void:
+      buckets_filled += 1
+      if buckets_filled >= 4:
+          _end_game(true)
+  ```
 
 #### Goal 2 - Food Sorting (Zero Hunger)
 - **Conveyor System**: Animated belt spawns randomised food items from two scene pools (good/bad food)
+  ```gdscript
+  func _spawn_food_item() -> void:
+      var is_bad = randf() > 0.5
+      var food_scene = bad_food_scene if is_bad else good_food_scene
+      var food_type_index = randi() % FOOD_MODELS.size()
+      var food_body = await _create_food_physics_body(food_scene, food_name, is_bad)
+  ```
 - **Proximity Detection**: Continuous distance calculations determine when items enter target containers (crate/bin)
+  ```gdscript
+  func _check_food_in_containers() -> void:
+      for food in food_items:
+          var dist_to_crate = food_pos.distance_to(crate_center)
+          if dist_to_crate < CONTAINER_RADIUS:
+              items_to_process.append({"food": food, "container": "crate"})
+  ```
 - **Button Interaction**: Area3D collision with hands toggles conveyor state with visual feedback
+  ```gdscript
+  func _on_button_area_entered(area: Area3D) -> void:
+      if _is_hand_node(area):
+          _toggle_conveyor()
+          _button_cooldown = 1.0
+          _animate_button_press()
+  ```
 
 #### Goal 3 - Hand Washing (Good Health)
 - **Multi-State System**: Tracks progress through soap application and water rinsing phases
+  ```gdscript
+  enum GameState { INTRO, WAITING_FOR_TAP, WASHING, COMPLETE, FAILED }
+  var current_state: GameState = GameState.INTRO
+  ```
 - **Scaled Detection**: All distance-based checks account for 1.2x scene scaling to ensure accurate hand/soap/water detection
+  ```gdscript
+  func _check_soap_contact() -> void:
+      var scaled_radius = SOAP_CONTACT_RADIUS * scale.x
+      var dist = left_hand.global_position.distance_to(soap_pos)
+      if dist < scaled_radius:
+          soap_touching_left = true
+  ```
 - **Signal-Based Water Detection**: Area3D signals (`area_entered`/`exited`) replace manual distance checks for robust hand detection under tap
+  ```gdscript
+  func _setup_water_detection_area() -> void:
+      water_detection_area.area_entered.connect(_on_water_zone_area_entered)
+      water_detection_area.area_exited.connect(_on_water_zone_area_exited)
+      water_detection_area.body_entered.connect(_on_water_zone_body_entered)
+  ```
 - **Progress Tracking**: Dual progress bars fill based on soap contact and water exposure duration
+  ```gdscript
+  func _update_progress_bar(bar: Node3D, progress: float) -> void:
+      var clamped = clamp(progress, 0.001, 1.0)
+      fill.scale.x = clamped
+      fill.position.x = -0.24 + (0.24 * clamped)
+  ```
 
 #### Goal 12 - Waste Sorting (Responsible Consumption)
 - **Object Classification**: WasteItem class with enum-based type system (recyclable/waste)
+  ```gdscript
+  enum WasteType { RECYCLABLE, WASTE }
+  @export var waste_type: WasteType = WasteType.RECYCLABLE
+  match waste_type:
+      WasteType.RECYCLABLE:
+          add_to_group("recyclable")
+      WasteType.WASTE:
+          add_to_group("waste")
+  ```
 - **Continuous Monitoring**: Physics process checks item positions against bin centers each frame
+  ```gdscript
+  func _check_trash_in_bins() -> void:
+      for bag in trash_bags:
+          var dist_to_waste = bag_pos.distance_to(waste_bin_center)
+          if dist_to_waste < BIN_DETECTION_RADIUS:
+              items_to_process.append({"bag": bag, "bin": "waste"})
+  ```
 - **Feedback System**: Confetti particle effects trigger on correct placement, audio cues for incorrect sorting
+  ```gdscript
+  func _setup_confetti_particles() -> void:
+      confetti_particles = GPUParticles3D.new()
+      confetti_particles.one_shot = true
+      confetti_particles.amount = 50
+      confetti_particles.explosiveness = 0.9
+  ```
 
 ### Code Quality & Maintainability
 - **Concise Documentation**: All scripts feature what/who/why comments explaining purpose, interactions, and reasoning
