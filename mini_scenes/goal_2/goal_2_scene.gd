@@ -138,6 +138,10 @@ func _on_barrier_body_entered(body: Node3D) -> void:
 func start_scene() -> void:
 	super.start_scene()
 
+	# Set Sustainabot skin color to Goal 2 yellow (Zero Hunger)
+	if sustainabot:
+		sustainabot.set_skin_color(Color("#DDA63A"))
+
 	items_sorted = 0
 	items_correct = 0
 	conveyor_active = false

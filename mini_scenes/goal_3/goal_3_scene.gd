@@ -101,8 +101,9 @@ func _get_references() -> void:
 	if has_node("Soap"):
 		soap_body = $Soap
 		soap_body.add_to_group("soap_item")
-		soap_body.gravity_scale = 0.0  # Disabled until game starts
-		print("Goal 3: Found Soap in scene")
+		# Freeze soap until scene is ready (prevents falling through during fade-in)
+		soap_body.freeze = true
+		print("Goal 3: Found Soap in scene at %s" % soap_body.position)
 	else:
 		print("Goal 3: ERROR - Soap node not found in scene!")
 
@@ -285,17 +286,23 @@ func _setup_water_particles() -> void:
 	water_particles.name = "WaterParticles"
 	water_particles.emitting = false
 	water_particles.amount = 50
-	water_particles.lifetime = 0.8
+	water_particles.lifetime = 0.6  # Shorter lifetime so particles don't go through basin
 	water_particles.one_shot = false
 	water_particles.explosiveness = 0.0
 
 	var mat = ParticleProcessMaterial.new()
 	mat.direction = Vector3(0, -1, 0)
 	mat.spread = 10.0
-	mat.initial_velocity_min = 1.5
-	mat.initial_velocity_max = 2.0
-	mat.gravity = Vector3(0, -10, 0)
+	mat.initial_velocity_min = 1.0
+	mat.initial_velocity_max = 1.5
+	mat.gravity = Vector3(0, -8, 0)
 	mat.color = Color(0.3, 0.6, 0.95, 0.8)
+
+	# Enable particle collision
+	mat.collision_mode = ParticleProcessMaterial.COLLISION_RIGID
+	mat.collision_bounce = 0.2
+	mat.collision_friction = 0.5
+
 	water_particles.process_material = mat
 
 	var mesh = SphereMesh.new()
@@ -381,6 +388,7 @@ func _update_progress_bar(bar: Node3D, progress: float) -> void:
 
 
 func _setup_sink_collision() -> void:
+	# Create StaticBody3D for soap/object collision
 	var sink_collision = StaticBody3D.new()
 	sink_collision.name = "SinkBasinCollision"
 	sink_collision.collision_layer = 1
@@ -392,8 +400,18 @@ func _setup_sink_collision() -> void:
 	col_shape.shape = box
 	sink_collision.add_child(col_shape)
 
-	# Add to scene first - position will be set in _position_from_markers()
 	add_child(sink_collision)
+	# Position at sink basin level
+	sink_collision.position = Vector3(-0.1, 0.52, -0.22)
+
+	# Create GPUParticlesCollisionBox3D for water particle collision
+	var particle_collision = GPUParticlesCollisionBox3D.new()
+	particle_collision.name = "SinkParticleCollision"
+	particle_collision.size = Vector3(0.5, 0.1, 0.4)
+	add_child(particle_collision)
+	# Position slightly above basin to catch particles
+	particle_collision.position = Vector3(-0.1, 0.54, -0.22)
+	print("Goal 3: Sink particle collision added")
 
 
 # Log positions for debugging
@@ -438,9 +456,11 @@ func start_scene() -> void:
 	_get_xr_references()
 	_connect_fist_signals()
 
-	# Enable soap physics
+	# Enable soap physics - unfreeze and enable gravity
 	if soap_body:
+		soap_body.freeze = false
 		soap_body.gravity_scale = 1.0
+		print("Goal 3: Soap unfrozen at %s" % soap_body.global_position)
 
 	current_state = GameState.WAITING_FOR_TAP
 

@@ -100,13 +100,24 @@ func _interrupt_current_scene() -> void:
 		return
 
 	var goal_num = current_mini_scene.goal_number
+	var scene_to_close = current_mini_scene
+
+	# Clear reference FIRST to prevent any callbacks from accessing it
+	current_mini_scene = null
+
+	# Disconnect task_completed signal to prevent loop
+	if scene_to_close.task_completed.is_connected(_on_task_completed):
+		scene_to_close.task_completed.disconnect(_on_task_completed)
 
 	# Stop any ongoing processes
-	current_mini_scene.end_scene()
+	scene_to_close.is_active = false
 
-	# Don't await - immediately clean up
-	current_mini_scene.queue_free()
-	current_mini_scene = null
+	# Kill any active tweens to prevent callbacks
+	if scene_to_close.fade_tween:
+		scene_to_close.fade_tween.kill()
+
+	# Immediately clean up
+	scene_to_close.queue_free()
 
 	# Emit signal for cleanup
 	emit_signal("scene_closed", goal_num)

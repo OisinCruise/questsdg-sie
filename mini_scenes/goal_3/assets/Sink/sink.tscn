@@ -1,5 +1,12 @@
-[gd_scene load_steps=2 format=3 uid="uid://byarfqvldgb47"]
+[gd_scene load_steps=3 format=3 uid="uid://byarfqvldgb47"]
 
 [ext_resource type="PackedScene" uid="uid://cwqkx3t8rx3h0" path="res://mini_scenes/goal_3/assets/Sink/scene.gltf" id="1_7eqlj"]
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_7eqlj"]
+size = Vector3(1, 0.10722351, 0.07241821)
+
 [node name="Sink" instance=ExtResource("1_7eqlj")]
+
+[node name="SinkTopCollision" type="CollisionShape3D" parent="Sketchfab_model/338147d1dabf492d8fb0a5c627c9c651_fbx/RootNode/sink001_reference_002/sink001_reference_002_sink001_0/StaticBody3D" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12091836, 0.13734439)
+shape = SubResource("BoxShape3D_7eqlj")
