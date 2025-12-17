@@ -8,6 +8,8 @@
 
 # Description of the project
 
+![Quest:SDG](mini_scenes/rm_images/og_sdg.png)
+
 Quest:SDG Extended is an immersive XR experience for Meta Quest that brings the UN's Sustainable Development Goals to life through interactive mini-scenes. Building upon the existing Quest:SDG framework, I created four unique interactive experiences focused on SDG Goals 1, 2, 3, and 12, each featuring task-based learning mechanics that engage users in sustainability-related challenges.
 
 The project transforms sustainability concepts into hands-on activities: pumping water for clean access (Goal 1), sorting food to promote food quality awareness (Goal 2), practicing proper hand hygiene (Goal 3), and managing waste responsibly (Goal 12). Each scene utilises Meta Quest's hand tracking capabilities for natural interactions, making sustainability education accessible and memorable through XR.
@@ -50,6 +52,8 @@ The project employs a hierarchical scene management system built on Godot's node
 
 ### Mini-Scene Implementations
 
+![Goal 1 Scene](mini_scenes/rm_images/goal_1.png)
+
 #### Goal 1 - Water Pump (No Poverty)
 - **Physics System**: HingeJoint3D constrains pump handle rotation with angular limits
   ```gdscript
@@ -78,6 +82,8 @@ The project employs a hierarchical scene management system built on Godot's node
           _end_game(true)
   ```
 
+![Goal 2 Scene](mini_scenes/rm_images/goal_2.png)
+
 #### Goal 2 - Food Sorting (Zero Hunger)
 - **Conveyor System**: Animated belt spawns randomised food items from two scene pools (good/bad food)
   ```gdscript
@@ -103,6 +109,8 @@ The project employs a hierarchical scene management system built on Godot's node
           _button_cooldown = 1.0
           _animate_button_press()
   ```
+
+![Goal 3 Scene](mini_scenes/rm_images/goal_3.png)
 
 #### Goal 3 - Hand Washing (Good Health)
 - **Multi-State System**: Tracks progress through soap application and water rinsing phases
@@ -132,6 +140,8 @@ The project employs a hierarchical scene management system built on Godot's node
       fill.scale.x = clamped
       fill.position.x = -0.24 + (0.24 * clamped)
   ```
+
+![Goal 12 Scene](mini_scenes/rm_images/goal_4.png)
 
 #### Goal 12 - Waste Sorting (Responsible Consumption)
 - **Object Classification**: WasteItem class with enum-based type system (recyclable/waste)
